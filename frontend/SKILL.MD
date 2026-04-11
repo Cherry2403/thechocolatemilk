@@ -20,7 +20,7 @@
 | **Backend** | NestJS · TypeScript | REST API, business logic, database ORM |
 | **Database** | PostgreSQL · TypeORM | User profiles, feed items, connections, chat history |
 | **Images** | Local assets now → Cloudinary / S3 later | Stored in `public/images/` for development |
-| **AI** | TODO — OpenAI API | Text chat only, no voice, backend service |
+| **AI** | TODO — OpenAI API | Text + image chat only, no voice, backend service |
 
 **Architecture:** Strict frontend/backend separation.
 - **Frontend** (Next.js): Pages, components, client-side state. Calls backend REST API via `fetch` or a thin API client layer.
@@ -29,7 +29,7 @@
 
 ---
 
-## Pages (3 Core Views)
+## Pages (4 Core Views)
 
 ### 1. Feed — `/feed` (default route)
 
@@ -41,9 +41,10 @@ Main experience. Pinterest-style masonry grid of curated items.
 - **Desktop:** 4–5 columns (Pinterest-style masonry)
 
 **Each card:**
-- Full image (variable height, like Pinterest)
-- Small heart button (bottom-right) and X button (bottom-left) overlaid on the image
-- On hover/tap: subtle overlay with item name + brand
+- Full image only (variable height, like Pinterest) — **no item name or brand text on the card**
+- Small X button (bottom-left-center) and heart button (bottom-right-center) overlaid on the image
+- Buttons centered horizontally at bottom of card, sized for easy tapping but not oversized
+- No hover overlay with name/brand — keep it clean, image-only
 
 **Interaction — the disappear effect:**
 1. User taps heart or X on any card
@@ -53,12 +54,13 @@ Main experience. Pinterest-style masonry grid of curated items.
 5. Heart → `POST /api/profile/like/:itemId`
 6. X → `POST /api/profile/dislike/:itemId`
 
-**This is NOT Tinder.** The user sees the full grid and can heart/X any card in any order — multiple at once. The satisfying disappear-and-collapse effect makes it addictive.
+**Important:** All cards have the **same width** within each column, but **variable height** based on the natural image ratio. This creates the organic Pinterest look without feeling messy.
 
 **Navigation:**
 - Bottom nav bar (fixed, Instagram-style):
-  - **Chat** (left) — AI assistant
-  - **Feed** (center, active) — current page
+  - **Feed** (left) — masonry grid
+  - **Chat** (center-left) — AI assistant
+  - **Connections** (center-right) — friends list
   - **Profile** (right) — taste dashboard
 
 ### 2. Chat — `/chat`
@@ -73,45 +75,42 @@ Messenger-style AI assistant (Facebook Messenger / Instagram DMs feel).
 - Optional: image upload button (for "is this good for Alex?")
 
 **Behavior:**
-- Ask for yourself: *"What flowers for a dinner party?"*
-- Ask for a friend: *"What would Alex like for her birthday?"*
-- AI uses the relevant user's taste profile to respond
-- `POST /api/chat` sends message → backend calls OpenAI (TODO) → returns response
+- Ask for yourself: *"What flowers for a dinner party at X price?"*
+- Ask for a connected friend: *"What would Alex like for her birthday?"*
+- AI uses the relevant person's **taste profile** (likes, colors, styles, brands) to respond
+- `POST /api/chat` sends message → backend calls OpenAI (TODO) → returns response based on taste data
 
 **AI Integration (TODO):**
-- For now: backend returns mock responses
-- Later: OpenAI API call with system prompt containing user/friend taste profile
-- No voice. Text only.
+- For now: backend returns mock responses based on taste profile
+- Later: OpenAI API call with system prompt containing the person's taste profile
+- No voice. Text only. **No access to friend's full feed — only their aggregated taste preferences.**
 
-### 3. Profile — `/profile`
+### 3. Connections — `/connections`
 
-Taste dashboard + connections.
+Dedicated page for managing friend connections.
+
+**Layout:**
+- Friends list at top — each friend shows **only their profile picture and username**
+- **No preference data, no liked/disliked items visible** to the user
+- Search bar to find and add friends by username
+- Remove friend via swipe or tap menu
+
+**Behavior:**
+- Search by username → results show profile picture + username → tap to connect
+- Once connected, the AI assistant in chat can access that friend's taste profile for recommendations
+- To get recommendations for a friend → go to chat and ask the AI
+
+### 4. Profile — `/profile`
+
+Taste dashboard — your personal history.
 
 **Sections:**
 
-#### A. Taste Timeline
-- Reverse-chronological list of liked items
-- Each entry: thumbnail + name + brand + category tag + relative date
-- Filter tabs: **All** | **Flowers** | **Fashion** | **Gifts**
-- Disliked tab to review/undo past dismissals
-
-#### B. Style Summary
-- Auto-computed from liked items:
-  - Top colors (visual swatches)
-  - Preferred styles (tag pills: "elegant", "minimal", "romantic")
-  - Favorite brands
-  - Category split (60% flowers, 30% fashion, 10% gifts)
-
-#### C. Connections (inline, no separate page)
-- Compact friends list:
-  ```
-  [A]  Alex          12 liked · Active     [Share]
-  [S]  Sarah         8 liked · Pending     [Share]
-  ```
-- Tap friend → expand to see their taste summary
-- Share button → copy invite link (`/feed?user=<id>`)
-- Add/remove friends inline
-- No separate connections page — most users have 3–10 friends
+#### A. Taste Timeline — Two Tabs
+Like Instagram's saved/tagged tab switcher:
+- **Liked tab** — Masonry grid of all items you hearted, reverse-chronological
+- **Dismissed tab** — Masonry grid of all items you X'd, reverse-chronological
+- Tap an item to undo the action (un-like or un-dismiss)
 
 ---
 
@@ -137,7 +136,8 @@ Taste dashboard + connections.
 - `GET /api/connections` → `Connection[]`
 - `POST /api/connections` → `Connection` (add friend)
 - `DELETE /api/connections/:id` → `{ success: true }`
-- `GET /api/connections/:id/taste` → `TasteProfile` (friend's computed taste)
+- `GET /api/connections/search?username=<query>` → `UserProfile[]` (search users by username)
+- `GET /api/connections/:id/taste` → `TasteProfile` (friend's computed taste — used by AI only, not exposed to user)
 
 ### Auth (TODO — later)
 - `POST /api/auth/signup` → `{ token, user }`
@@ -164,7 +164,7 @@ CREATE TABLE feed_items (
   name VARCHAR(255) NOT NULL,
   description TEXT,
   image_url VARCHAR(500) NOT NULL,
-  category VARCHAR(50) NOT NULL,       -- 'flower' | 'fashion' | 'gift' | 'accessory'
+  category VARCHAR(50) NOT NULL,       -- 'flower' | 'fashion' 
   brand VARCHAR(100),
   product_link VARCHAR(500),
   tags JSON,                            -- ["elegant", "minimal", "romantic"]
@@ -223,7 +223,7 @@ interface FeedItem {
   name: string;
   description: string;
   image: string;                         // URL or path
-  category: 'flower' | 'fashion' | 'gift' | 'accessory';
+  category: 'flower' | 'fashion';
   brand: string;
   productLink: string;
   tags: string[];                        // "elegant", "bold", "minimal"
@@ -298,12 +298,16 @@ frontend/               (Next.js)
 │   │   │       ├── ChatBubble.tsx    # Message bubble
 │   │   │       └── ChatInput.tsx     # Text input + send
 │   │   │
+│   │   ├── connections/
+│   │   │   ├── page.tsx              # Connections page
+│   │   │   └── components/
+│   │   │       ├── FriendList.tsx    # Connected friends list
+│   │   │       └── UsernameSearch.tsx # Search + add friend
+│   │   │
 │   │   └── profile/
 │   │       ├── page.tsx              # Profile page
 │   │       └── components/
-│   │           ├── TasteTimeline.tsx  # Liked items list
-│   │           ├── StyleSummary.tsx   # Computed taste overview
-│   │           └── Connections.tsx    # Friends inline
+│   │           └── TasteTimeline.tsx  # Liked/Dismissed tabs
 │   │
 │   ├── lib/
 │   │   ├── api/                      # API client functions
@@ -400,26 +404,26 @@ backend/                (NestJS)
 ## Feed — Detailed Behavior
 
 ### Masonry Layout
-- CSS `columns` or a React masonry library
+- Tailwind-based layout (CSS `columns` or a React masonry library — **no raw CSS unless Tailwind cannot solve it**)
 - Images have variable heights — loaded naturally, no forced aspect ratio
+- **Same width** per column, **variable height** per card — organic Pinterest feel
 - Columns: 2 (mobile) → 3 (tablet) → 4–5 (desktop)
 
 ### Card Anatomy
 ```
 ┌──────────────────┐
 │                   │
-│      IMAGE        │    ← variable height, object-fit: cover
+│      IMAGE        │    ← variable height, natural ratio
 │                   │
-│  [X]         [♡]  │    ← small buttons overlaid, bottom corners
+│    [X]    [♡]     │    ← centered left/right at bottom, comfortably tappable
 └──────────────────┘
-     Item Name            ← subtle text below (on hover)
-     Brand                ← smaller, muted
 ```
+No item name. No brand text. Image only + action buttons.
 
 ### Disappear Effect (on heart or X)
 1. User taps heart or X
-2. Card: `opacity: 0`, `transform: scale(0.95)`, `height: 0`, `margin: 0` over ~250ms
-3. CSS transition collapses the space — cards below slide up
+2. Card: `opacity-0`, `scale-95`, collapse height over ~250ms (Tailwind transitions)
+3. Tailwind transition collapses the space — cards below slide up
 4. After animation completes, card is removed from DOM
 5. API call fires: `POST /api/profile/like/:itemId` or `dislike/:itemId`
 6. Infinite scroll loads more items at the bottom
@@ -434,53 +438,69 @@ backend/                (NestJS)
 
 ## Profile — Detailed Behavior
 
-### Taste Timeline
-- Reverse-chronological list of hearted items
-- Each row: image thumbnail (60×60) + item name + brand + category pill + relative date
-- Swipe-left to unlike (calls `DELETE /api/profile/like/:itemId`)
-- Filter tabs: All | Flowers | Fashion | Gifts
+### Taste Timeline — Two Tabs
+Like Instagram's saved/tagged tab switcher:
+- **Liked tab** — masonry grid of hearted items, reverse-chronological
+- **Dismissed tab** — masonry grid of X'd items, reverse-chronological
+- Tap an item to undo the action (un-like or un-dismiss, calls `DELETE /api/profile/like/:itemId` or `DELETE /api/profile/dislike/:itemId`)
 
-### Style Summary
-- Auto-computed from liked items (backend `TasteService`):
-  - **Colors:** Top 5, shown as small circles/swatches
-  - **Styles:** Tag pills ("elegant", "romantic", "minimal")
-  - **Brands:** Top 3 with count
-  - **Categories:** Horizontal bar or percentage
+---
 
-### Connections Section
-- Header: "Friends" with "+" button
-- Compact list with name, liked count, status, share button
-- Tap friend → expandable panel with their taste summary (from `GET /api/connections/:id/taste`)
-- Share button → copy link to clipboard
+## Connections — Detailed Behavior
+
+### Friends List
+- Each friend: **profile picture + username only**
+- **No preference data visible**, no liked/disliked items shown
+- Remove friend via swipe or tap menu
+
+### Add Friend
+- Search bar at top of connections page
+- Type a username → live search results
+- Each result: profile picture + username
+- Tap to send connection request
+- Once connected → AI assistant in chat can use their taste profile
 
 ---
 
 ## Design Language
 
 ### Aesthetic
-- **Simple, elegant, clean** — fits fashion + flower niche
-- Inspired by: Pinterest layout, Instagram navigation, Aesop/Glossier minimalism
-- No emoji in UI. No bright primary colors. No clutter.
+- **Warm, elegant, lotus-inspired** — earthy tones with luxe accents
+- Influences: botanical gardens, Japanese minimalism, warm luxury
+- No bright primary colors. No clutter. Timeless and serene.
 
 ### Color Palette
-- **Background:** `#FAFAF8` (warm off-white)
-- **Surface:** `#FFFFFF` with subtle shadow
-- **Text primary:** `#1A1A1A` (near-black)
-- **Text secondary:** `#8A8A8A` (warm gray)
-- **Accent:** `#C4A07C` (muted gold) or `#D4A6A6` (dusty rose)
-- **Heart active:** `#E8B4B4` (soft rose)
-- **X active:** `#B0B0B0` (cool gray)
+- **Background:** `#FDFBD4` (butter cream — warm, soft, inviting)
+- **Surface:** `#FFFFFF` (pure white — cards and elevated surfaces)
+- **Text primary:** `#1B1B1B` (deep brown — warm near-black)
+- **Text secondary:** `#454545` (mid-brown gray)
+- **Accent green:** `#004225` (deep lotus green — primary accent, nav bar)
+- **Accent green light:** `#2D6A4F` (lighter lotus green — hover states)
+- **Warm accent:** `#C4A484` (light brown — secondary accent)
+- **Dark accent:** `#5C4033` (dark brown — headings, emphasis)
+- **Butter yellow:** `#D4A843` (warm gold — active nav items, highlights)
+- **Soft pink:** `#FFD4D4` (pale lotus pink — accents)
+- **Heart active:** `#C96B7A` (dusty rose — like button)
+- **Dismiss active:** `#8A8A7A` (soft taupe — dismiss button)
 
 ### Typography
-- Headings: light weight, wide letter-spacing, uppercase
-- Body: regular weight, comfortable line-height
-- Small details: lighter color, extra tracking
+- **Headings:** Cormorant Garamond (serif) — light weight, wide letter-spacing, elegant
+- **Body:** Inter (sans-serif) — clean, legible, comfortable line-height
+- **Monospace:** Geist Mono — code and technical elements
+- Small details: lighter color, extra tracking for hierarchy
 
 ### Components
 - Cards: no borders, soft shadow, rounded-lg
 - Buttons: ghost style or subtle fill, never loud
-- Transitions: 200–300ms ease, never jarring
-- Glass-morphism: sparingly, on overlays and chat bubbles
+- Transitions: 200–320ms ease with smooth easing curves for natural feel
+- Animations: fade + scale for exits, bouncy easing for entries
+- **Tailwind CSS v4 only** — no raw CSS unless Tailwind cannot resolve the issue
+
+### Code Quality
+- Write **sustainable, production-level code**
+- Clean architecture, proper TypeScript typing, reusable components
+- No shortcuts, no hacks, no magic numbers
+- Every component should be testable and maintainable
 
 ---
 
@@ -494,20 +514,22 @@ backend/                (NestJS)
   - [ ] `.env.local` with `NEXT_PUBLIC_API_URL` placeholder
 
 - [ ] **1.2 — Routing + Navigation**
-  - [ ] `/feed`, `/chat`, `/profile` routes
-  - [ ] BottomNav component (4 icons: home, chat, profile, settings)
+  - [ ] `/feed`, `/chat`, `/connections`, `/profile` routes
+  - [ ] BottomNav component (4 icons: feed, chat, connections, profile)
   - [ ] Layout wrapper with nav + padding
   - [ ] Active route highlighting
 
 ### Phase 2: Frontend — Feed Page
 - [ ] **2.1 — Feed Layout + Masonry Grid**
   - [ ] MasonryGrid component (responsive: 2 col mobile → 4–5 col desktop)
-  - [ ] CSS Grid with `auto-rows: min-content`
+  - [ ] Same width per column, variable height based on natural image ratio
+  - [ ] Tailwind-based layout (use CSS columns or masonry lib, no raw CSS unless necessary)
   - [ ] Mock feed data in `lib/data/feedMock.ts` (20+ items)
 
 - [ ] **2.2 — Feed Card Component**
-  - [ ] FeedCard: image, overlay (small heart + X buttons)
-  - [ ] Hover states, button positioning (bottom-right)
+  - [ ] FeedCard: image only, no name/brand text on card
+  - [ ] X button (left-center bottom) and heart button (right-center bottom)
+  - [ ] Buttons sized for easy tapping but not oversized
   - [ ] Tap to trigger action (no backend yet)
 
 - [ ] **2.3 — Like/Dislike + Disappear Animation**
@@ -524,28 +546,27 @@ backend/                (NestJS)
 ### Phase 3: Frontend — Profile Page
 - [ ] **3.1 — Profile Header**
   - [ ] User display: avatar placeholder, name, username
-  - [ ] Stats: total likes, top categories
+  - [ ] Stats: total likes, total dismissed
   - [ ] Edit button (placeholder for later)
 
-- [ ] **3.2 — Taste Timeline Tab**
-  - [ ] Reverse-chronological grid of liked items
-  - [ ] Filter tabs: All / Flowers / Fashion / Gifts / Accessories
-  - [ ] Swipe-to-remove (or tap X) to unlike
+- [ ] **3.2 — Taste Timeline — Two Tabs**
+  - [ ] **Liked tab** — masonry grid of hearted items (reverse-chronological)
+  - [ ] **Dismissed tab** — masonry grid of X'd items (reverse-chronological)
+  - [ ] Tab switcher (like Instagram saved/tagged)
+  - [ ] Tap item to undo (un-like or un-dismiss)
   - [ ] Read from local state
 
-- [ ] **3.3 — Style Summary Tab**
-  - [ ] Color swatches (computed from liked items)
-  - [ ] Style tags (pills from item metadata)
-  - [ ] Top brands (list)
-  - [ ] Category distribution (small chart or percentages)
-  - [ ] **Compute locally** from mock items + likes
-
-- [ ] **3.4 — Connections Tab**
-  - [ ] Friends list (mock data)
-  - [ ] Each friend: avatar, name, "View Taste"
-  - [ ] Add friend button (modal with invite link)
+### Phase 3b: Frontend — Connections Page
+- [ ] **3.3 — Friends List**
+  - [ ] List of connected friends (profile picture + username only)
+  - [ ] No preference data visible
   - [ ] Remove friend (swipe or tap menu)
-  - [ ] **Share invite link** (copy to clipboard)
+
+- [ ] **3.4 — Add Friend**
+  - [ ] Search bar to find users by username
+  - [ ] Search results show profile picture + username
+  - [ ] Tap to send connection request
+  - [ ] Mock data for now
 
 ### Phase 4: Frontend — Chat Page
 - [ ] **4.1 — Chat Layout**

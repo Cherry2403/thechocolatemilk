@@ -1,26 +1,22 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* ── Lotus Color Palette ── */
+  --color-bg: #F9E4DC;
+  --color-white: #FFFFFF;
+  --color-text: #1B1B1B;
+  --color-green: #004225;
+  --color-green-light: #2D6A4F;
+  --color-cream-pink: #F9E4DC;
+  --color-light-pink: #FFD4D4;
+  --color-grey: #454545;
+  --color-light-brown: #C4A484;
+  --color-dark-brown: #5C4033;
+  --color-dark-red: #550000;
+  --color-cream: #FDFBD4;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #FDFBD4;
+  color: var(--color-text);
 }

@@ -1,4 +1,4 @@
-# THELOTUSUNION
+# THE LOTUS UNION
 
 A style and gift curation platform that learns your taste — and your friends' — so you never have to guess what to give.
 
@@ -8,9 +8,9 @@ A style and gift curation platform that learns your taste — and your friends' 
 
 **Browse.** A Pinterest-style feed of flowers, fashion, and gifts. Heart what you love, dismiss what you don't. Your taste profile builds itself.
 
-**Ask.** An AI chat assistant that knows your friends' styles. Say *"What would Alex like for her birthday?"* and get suggestions based on what Alex actually liked — not generic picks.
+**Connect.** Add friends to your network. Build a shared taste knowledge base of people you care about.
 
-**Share.** Invite friends to browse the feed on their own device. Their preferences become available to you when you're shopping for them.
+**Ask.** An AI chat assistant that knows you and your friends' styles. Say *"What would Alex like for her birthday?"* and get personalized suggestions based on what Alex actually liked — powered by their taste profile, not generic picks.
 
 ---
 
@@ -20,7 +20,8 @@ A style and gift curation platform that learns your taste — and your friends' 
 |------|-------|---------|
 | **Feed** | `/feed` | Pinterest masonry grid. Heart/X items. They disappear satisfyingly. |
 | **Chat** | `/chat` | Messenger-style AI assistant. Ask for yourself or a friend. |
-| **Profile** | `/profile` | Your taste timeline, style summary, and friend connections. |
+| **Connections** | `/connections` | Friends list + search by username to add new friends. |
+| **Profile** | `/profile` | Your taste timeline — liked and dismissed items in 2 tabs. |
 
 ---
 
@@ -31,7 +32,7 @@ A style and gift curation platform that learns your taste — and your friends' 
 | **Frontend** | Next.js 16+ · TypeScript · Tailwind CSS v4 |
 | **Backend** | NestJS · TypeScript · TypeORM |
 | **Database** | PostgreSQL |
-| **AI** | TODO — OpenAI (text chat, no voice) |
+| **AI** | TODO — OpenAI (text + image chat) |
 
 Frontend and backend are fully separated. Next.js calls NestJS REST API endpoints. All data lives in PostgreSQL — no localStorage for persistent storage.
 
@@ -65,7 +66,8 @@ frontend/            Next.js
 ├── src/app/
 │   ├── feed/                  Feed page + MasonryGrid + FeedCard
 │   ├── chat/                  Chat page + ChatBubble + ChatInput
-│   └── profile/               Profile page + Timeline + Summary + Connections
+│   ├── connections/           Connections page + FriendList + UsernameSearch
+│   └── profile/               Profile page + Taste Timeline (liked/dismissed tabs)
 ├── src/lib/
 │   ├── api/                   API client (feed, profile, chat, connections)
 │   └── types/                 Shared TypeScript interfaces
@@ -97,6 +99,7 @@ backend/             NestJS
 | `POST` | `/api/chat` | Send message, get AI response |
 | `GET` | `/api/chat/history` | Chat history |
 | `GET` | `/api/connections` | Friend list |
+| `GET` | `/api/connections/search?username=<query>` | Search users by username |
 | `POST` | `/api/connections` | Add friend |
 | `DELETE` | `/api/connections/:id` | Remove friend |
 
@@ -104,21 +107,29 @@ backend/             NestJS
 
 ## Feed
 
-Pinterest-style masonry grid. 2 columns on phone, 4–5 on desktop.
+Pinterest-style masonry grid. 2 columns on phone, 4–5 on desktop. All cards have the **same width** within each column, but **variable height** based on the natural image ratio — this creates the organic Pinterest look without feeling messy.
 
-Each card has a small heart and X overlaid on the image. Tap either and the card fades out, scales down, and collapses — cards below slide up to fill the gap. Infinite scroll loads more items.
+Each card shows **only the image** with a small X (left-center) and heart (right-center) at the bottom of the card. No item name, no brand text on the card. Tap either button and the card fades out, scales down, and collapses — cards below slide up to fill the gap. Infinite scroll loads more items.
 
-Items span categories: flowers, fashion, gifts, accessories. Each has style tags, colors, a brand, and a product link.
+Items span categories: flowers, fashion. Each has style tags, colors, a brand, and a product link (stored in data, not shown on card).
 
 ---
 
 ## Profile
 
-**Taste Timeline** — Reverse-chronological feed of everything you liked. Filter by category. Swipe to unlike.
+**Taste Timeline** — Two tabs (like Instagram's saved/tagged):
+- **Liked tab** — Masonry grid of all items you hearted, reverse-chronological
+- **Dismissed tab** — Masonry grid of all items you X'd, reverse-chronological
 
-**Style Summary** — Auto-computed from your browsing: top colors (swatches), preferred styles (tag pills), favorite brands, category distribution.
+---
 
-**Connections** — Friends list inline on the profile page. Add friends, see their browse status, share an invite link. Tap a friend to view their taste summary.
+## Connections
+
+A dedicated page accessible from the bottom nav bar. Your friends list + ability to add new friends.
+
+- **Friends list** — Each friend shows **only their profile picture and username**. No preference data or liked/disliked items visible.
+- **Add friend** — Search by username to find and connect with people. Once connected, the AI assistant in chat can access their taste profile to give you recommendations.
+- **Remove friend** — Swipe or tap menu to disconnect.
 
 ---
 
@@ -126,9 +137,9 @@ Items span categories: flowers, fashion, gifts, accessories. Each has style tags
 
 Messenger-style AI assistant. Text input, chat bubbles, optional image upload.
 
-Ask for yourself (*"What flowers for a dinner party?"*) or a friend (*"What would Sarah like?"*). The AI uses the relevant taste profile to respond.
+Ask for yourself (*"Find me flowers/dress for a dinner party at X price?"*) or a connected friend (*"What would Sarah like?"*). The AI uses the relevant person's **taste profile** (likes, colors, styles, brands) to respond with personalized suggestions.
 
-Currently mocked in the backend. OpenAI integration planned — text only, no voice.
+Currently mocked in the backend. OpenAI integration planned — text+image only.
 
 ---
 
@@ -140,7 +151,7 @@ interface FeedItem {
   name: string;
   description: string;
   image: string;
-  category: 'flower' | 'fashion' | 'gift' | 'accessory';
+  category: 'flower' | 'fashion';
   brand: string;
   productLink: string;
   tags: string[];
@@ -188,16 +199,19 @@ interface ChatMessage {
 
 ## Design
 
-Simple, elegant, clean — fits fashion and flower niche.
+Simple, elegant, clean — spring and lotus-inspired theme.
 
-- Warm off-white background (`#FAFAF8`)
+- Light, airy background with a soft spring palette
+- Fresh greens, soft pinks, gentle lilac — natural and calming
 - Near-black text, warm gray secondary
-- Muted gold or dusty rose accent — subtle, never loud
 - Light-weight uppercase headings with wide letter-spacing
 - Soft shadows, no borders, rounded corners
 - 200–300ms transitions, glass-morphism on overlays
+- **Tailwind CSS v4 only** — no raw CSS unless Tailwind cannot solve it
 
-No emoji. No clutter. No bright primary colors.
+No emoji. No clutter. No bright primary colors. Think lotus pond on a spring morning.
+
+**Code Quality:** Write sustainable, production-level code. Clean architecture, proper typing, reusable components, no shortcuts.
 
 ---
 
@@ -211,20 +225,22 @@ No emoji. No clutter. No bright primary colors.
   - [ ] `.env.local` with `NEXT_PUBLIC_API_URL` placeholder
 
 - [ ] **1.2 — Routing + Navigation**
-  - [ ] `/feed`, `/chat`, `/profile` routes
-  - [ ] BottomNav component (4 icons: home, chat, profile, settings)
+  - [ ] `/feed`, `/chat`, `/connections`, `/profile` routes
+  - [ ] BottomNav component (4 icons: feed, chat, connections, profile)
   - [ ] Layout wrapper with nav + padding
   - [ ] Active route highlighting
 
 ### Phase 2: Frontend — Feed Page
 - [ ] **2.1 — Feed Layout + Masonry Grid**
   - [ ] MasonryGrid component (responsive: 2 col mobile → 4–5 col desktop)
-  - [ ] CSS Grid with `auto-rows: min-content`
+  - [ ] Same width per column, variable height based on natural image ratio
+  - [ ] Tailwind-based layout (use CSS columns or masonry lib, no raw CSS unless necessary)
   - [ ] Mock feed data in `lib/data/feedMock.ts` (20+ items)
 
 - [ ] **2.2 — Feed Card Component**
-  - [ ] FeedCard: image, overlay (small heart + X buttons)
-  - [ ] Hover states, button positioning (bottom-right)
+  - [ ] FeedCard: image only, no name/brand text on card
+  - [ ] X button (left-center bottom) and heart button (right-center bottom)
+  - [ ] Buttons sized for easy tapping but not oversized
   - [ ] Tap to trigger action (no backend yet)
 
 - [ ] **2.3 — Like/Dislike + Disappear Animation**
@@ -241,28 +257,27 @@ No emoji. No clutter. No bright primary colors.
 ### Phase 3: Frontend — Profile Page
 - [ ] **3.1 — Profile Header**
   - [ ] User display: avatar placeholder, name, username
-  - [ ] Stats: total likes, top categories
+  - [ ] Stats: total likes, total dismissed
   - [ ] Edit button (placeholder for later)
 
-- [ ] **3.2 — Taste Timeline Tab**
-  - [ ] Reverse-chronological grid of liked items
-  - [ ] Filter tabs: All / Flowers / Fashion / Gifts / Accessories
-  - [ ] Swipe-to-remove (or tap X) to unlike
+- [ ] **3.2 — Taste Timeline — Two Tabs**
+  - [ ] **Liked tab** — masonry grid of hearted items (reverse-chronological)
+  - [ ] **Dismissed tab** — masonry grid of X'd items (reverse-chronological)
+  - [ ] Tab switcher (like Instagram saved/tagged)
+  - [ ] Tap item to undo (un-like or un-dismiss)
   - [ ] Read from local state
 
-- [ ] **3.3 — Style Summary Tab**
-  - [ ] Color swatches (computed from liked items)
-  - [ ] Style tags (pills from item metadata)
-  - [ ] Top brands (list)
-  - [ ] Category distribution (small chart or percentages)
-  - [ ] **Compute locally** from mock items + likes
-
-- [ ] **3.4 — Connections Tab**
-  - [ ] Friends list (mock data)
-  - [ ] Each friend: avatar, name, "View Taste"
-  - [ ] Add friend button (modal with invite link)
+### Phase 3b: Frontend — Connections Page
+- [ ] **3.3 — Friends List**
+  - [ ] List of connected friends (profile picture + username only)
+  - [ ] No preference data visible
   - [ ] Remove friend (swipe or tap menu)
-  - [ ] **Share invite link** (copy to clipboard)
+
+- [ ] **3.4 — Add Friend**
+  - [ ] Search bar to find users by username
+  - [ ] Search results show profile picture + username
+  - [ ] Tap to send connection request
+  - [ ] Mock data for now
 
 ### Phase 4: Frontend — Chat Page
 - [ ] **4.1 — Chat Layout**
@@ -391,3 +406,4 @@ No emoji. No clutter. No bright primary colors.
 
 **Version:** 2.0.0 — Next.js + NestJS + PostgreSQL
 **Status:** Production foundation
+**Code Standard:** Sustainable, production-level code. Tailwind CSS v4 only (no raw CSS unless Tailwind cannot resolve). Clean architecture, proper TypeScript typing, reusable components.
