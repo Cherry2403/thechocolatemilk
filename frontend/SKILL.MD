@@ -69,10 +69,31 @@ Messenger-style AI assistant (Facebook Messenger / Instagram DMs feel).
 
 **Layout:**
 - Full-height chat with message bubbles
-- User messages: right-aligned, light background
-- AI messages: left-aligned, dark/glass background
+- User messages: right-aligned, dark-brown background, white text
+- AI messages: left-aligned, white/glass background, dark text
 - Text input + send button at bottom
+- **No timestamps displayed** in the chat UI (stored internally for ordering)
 - Optional: image upload button (for "is this good for Alex?")
+
+**AI Response Types — the assistant should vary its behavior:**
+1. **Rate & advise** — If the user asks about a specific item or category, rate it and explain why it matches (or doesn't match) their taste profile
+2. **Suggest products** — Recommend items with inline image thumbnails + price; ask about quantity preference ("Just one statement piece, or a few?")
+3. **Friend recommendations** — When asked about a connected friend, use that friend's taste profile to suggest items they'd love
+4. **Style analysis** — Summarize the user's taste: top colors, styles, brands, and categories from their like history
+5. **Casual chat** — Greetings, thank yous, and general conversation with personality
+
+**GIF Support:**
+- AI can include reaction GIFs for personality (wave, thinking, excited, etc.)
+- 10–20 basic GIFs stored as URLs (GIPHY CDN or local assets)
+- Displayed inline below the text content in the chat bubble
+- Not every message needs a GIF — used sparingly for warmth
+
+**Mock Responses (Frontend Phase):**
+- Keyword-matching rules in `lib/data/chatMock.ts`
+- Each rule has triggers (keywords) and an array of possible responses (picked randomly)
+- Responses can include: text content, optional GIF URL, optional product suggestions
+- Simulated typing delay (0.8–2s) before AI responds
+- Later: swap mock logic for OpenAI API call via backend
 
 **Behavior:**
 - Ask for yourself: *"What flowers for a dinner party at X price?"*
@@ -81,7 +102,7 @@ Messenger-style AI assistant (Facebook Messenger / Instagram DMs feel).
 - `POST /api/chat` sends message → backend calls OpenAI (TODO) → returns response based on taste data
 
 **AI Integration (TODO):**
-- For now: backend returns mock responses based on taste profile
+- For now: frontend mock responses via `lib/data/chatMock.ts` (keyword-based JSON rules)
 - Later: OpenAI API call with system prompt containing the person's taste profile
 - No voice. Text only. **No access to friend's full feed — only their aggregated taste preferences.**
 
@@ -89,16 +110,27 @@ Messenger-style AI assistant (Facebook Messenger / Instagram DMs feel).
 
 Dedicated page for managing friend connections.
 
-**Layout:**
-- Friends list at top — each friend shows **only their profile picture and username**
-- **No preference data, no liked/disliked items visible** to the user
-- Search bar to find and add friends by username
-- Remove friend via swipe or tap menu
+**Layout (single page, no popups):**
+- Search bar at top to find and add friends by username
+- **Pending requests section** below search (collapsed preview: 3 latest incoming)
+  - Expand/"Show all" to see all incoming + outgoing requests
+  - Incoming: Accept / Decline buttons
+  - Outgoing: "Requested" status label
+- **Accepted friends list** below pending section
+  - Each friend shows: username (primary, bold) + assistant name (secondary, small)
+  - Remove friend via tap/button
+
+**Connection States:**
+- `pending` — one side has sent a request, waiting for the other to accept
+- `accepted` — both sides confirmed, full connection active
+- The `initiatedBy` field tracks who sent the request
+- Only accepted connections appear in the chat contact list
 
 **Behavior:**
-- Search by username → results show profile picture + username → tap to connect
-- Once connected, the AI assistant in chat can access that friend's taste profile for recommendations
-- To get recommendations for a friend → go to chat and ask the AI
+- Search by username → results show username + assistant name → tap "Connect" → creates pending request
+- Once both sides accept → connection moves to accepted list
+- Once connected, the AI assistant in chat can access that friend’s taste profile for recommendations
+- To get recommendations for a friend → go to chat and talk to their assistant
 
 ### 4. Profile — `/profile`
 
@@ -154,6 +186,7 @@ CREATE TABLE users (
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   username VARCHAR(100) NOT NULL,
+  private_assistant_name VARCHAR(100),   -- user-chosen name for their AI assistant
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -197,7 +230,8 @@ CREATE TABLE connections (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   friend_id UUID REFERENCES users(id) ON DELETE SET NULL,
-  friend_name VARCHAR(100),             -- fallback for unregistered friends
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending' | 'accepted'
+  initiated_by UUID NOT NULL REFERENCES users(id), -- who sent the request
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -237,6 +271,7 @@ interface UserProfile {
   id: string;
   email: string;
   username: string;
+  privateAssistantName: string;          // user-chosen name for their AI assistant
   liked: { itemId: string; likedAt: string }[];
   disliked: { itemId: string; dislikedAt: string }[];
 }
@@ -257,7 +292,10 @@ interface Connection {
   id: string;
   userId: string;
   friendId?: string;                     // null if friend hasn't signed up
-  friendName: string;
+  friendUsername: string;
+  friendAssistantName?: string;          // their AI assistant's name
+  status: 'pending' | 'accepted';        // both sides must confirm
+  initiatedBy: string;                   // who sent the request
   createdAt: string;
 }
 
@@ -268,8 +306,9 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   image?: string;
+  gif?: string;                          // GIF URL for AI personality/reactions
   suggestions?: FeedItem[];              // AI can attach item recommendations
-  timestamp: string;
+  timestamp: string;                     // stored internally, NOT displayed in chat UI
 }
 ```
 
@@ -293,20 +332,23 @@ frontend/               (Next.js)
 │   │   │       └── FeedCard.tsx      # Image + heart/X overlay
 │   │   │
 │   │   ├── chat/
-│   │   │   ├── page.tsx              # Chat page
+│   │   │   ├── page.tsx              # Chat page (contacts + conversation)
 │   │   │   └── components/
+│   │   │       ├── ChatContactList.tsx # Left sidebar / mobile contact screen
 │   │   │       ├── ChatBubble.tsx    # Message bubble
 │   │   │       └── ChatInput.tsx     # Text input + send
 │   │   │
 │   │   ├── connections/
 │   │   │   ├── page.tsx              # Connections page
 │   │   │   └── components/
-│   │   │       ├── FriendList.tsx    # Connected friends list
+│   │   │       ├── PendingRequests.tsx # Incoming/outgoing request section
+│   │   │       ├── FriendList.tsx    # Accepted friends list
 │   │   │       └── UsernameSearch.tsx # Search + add friend
 │   │   │
 │   │   └── profile/
 │   │       ├── page.tsx              # Profile page
 │   │       └── components/
+│   │           ├── ProfileHeader.tsx  # Avatar, username, assistant name, stats
 │   │           └── TasteTimeline.tsx  # Liked/Dismissed tabs
 │   │
 │   ├── lib/
@@ -315,6 +357,11 @@ frontend/               (Next.js)
 │   │   │   ├── profile.ts          # getProfile, like, dislike
 │   │   │   ├── chat.ts             # sendMessage, getHistory
 │   │   │   └── connections.ts      # getConnections, add, remove
+│   │   ├── data/                     # Mock data (frontend-only phase)
+│   │   │   ├── feedMock.ts          # 24 FeedItem objects with images
+│   │   │   ├── chatMock.ts          # Keyword-matching AI response engine
+│   │   │   ├── connectionsMock.ts   # Mock connections + search results
+│   │   │   └── userMock.ts          # Current user mock profile
 │   │   ├── types/                    # Shared TypeScript interfaces
 │   │   │   ├── feed.ts
 │   │   │   ├── user.ts
@@ -323,8 +370,17 @@ frontend/               (Next.js)
 │   │   └── utils/
 │   │       └── time-ago.ts          # Relative date formatting
 │   │
+│   ├── contexts/                     # React Context providers
+│   │   └── TasteContext.tsx          # Liked/disliked items global state
+│   │
+│   ├── hooks/                        # Custom React hooks
+│   │   ├── useFeed.ts               # Feed pagination, like/dislike actions
+│   │   ├── useChat.ts               # Chat messages, typing, mock responses
+│   │   └── useColumnCount.ts        # Responsive column count for masonry
+│   │
 │   ├── components/                   # Shared components
 │   │   ├── BottomNav.tsx
+│   │   ├── Providers.tsx            # Client boundary for context providers
 │   │   └── Loading.tsx
 │   │
 │   └── styles/
@@ -449,25 +505,92 @@ Like Instagram's saved/tagged tab switcher:
 ## Connections — Detailed Behavior
 
 ### Friends List
-- Each friend: **profile picture + username only**
+- Each friend: **username (primary, bold) + assistant name (secondary, small)**
 - **No preference data visible**, no liked/disliked items shown
-- Remove friend via swipe or tap menu
+- Remove friend via tap/button
 
 ### Add Friend
 - Search bar at top of connections page
 - Type a username → live search results
-- Each result: profile picture + username
-- Tap to send connection request
-- Once connected → AI assistant in chat can use their taste profile
+- Each result: username + assistant name
+- Tap to send connection request (creates pending)
+- Once both sides accept → AI assistant in chat can use their taste profile
+
+### Pending Requests
+- Shown above the accepted friends list on the same page
+- Preview: 3 latest incoming requests with Accept/Decline buttons
+- "Show all" expands full list of incoming + outgoing
+- Outgoing requests show "Requested" label (no action available)
+
+---
+
+## Mock Data Strategy
+
+> **Purpose:** During the frontend-only phase (Phases 1–4), all data comes from mock files in `lib/data/`. This section documents every mock file, its structure, and how to swap it for real API calls during backend integration (Phase 7).
+
+### Mock Files
+
+| File | Exports | Used By | Swap Target |
+|------|---------|---------|-------------|
+| `feedMock.ts` | `FEED_MOCK: FeedItem[]` (24 items) | `useFeed` hook | `GET /api/feed?page=N&limit=20` |
+| `chatMock.ts` | `getMockResponse(msg): MockResponse` | `useChat` hook | `POST /api/chat` → backend AI |
+| `connectionsMock.ts` | `CONNECTIONS_MOCK: Connection[]`, `SEARCH_RESULTS_MOCK: SearchResult[]` | Connections page | `GET /api/connections`, `GET /api/connections/search` |
+| `userMock.ts` | `CURRENT_USER: UserProfile` | ProfileHeader, chat page | `GET /api/profile` (from JWT context) |
+
+### Chat Mock Engine (`chatMock.ts`)
+
+**Architecture:** Rule-based keyword matcher with random response selection.
+
+```
+User message → lowercase → scan rules for trigger match → pick random response → return
+```
+
+**Rule structure:**
+```typescript
+interface MockRule {
+  triggers: string[];                    // keywords to match (lowercase)
+  responses: MockResponse[] | (() => MockResponse[]);  // static or factory
+}
+
+interface MockResponse {
+  content: string;                       // text reply
+  gif?: string;                          // optional GIPHY URL
+  suggestions?: FeedItem[];              // optional product cards
+}
+```
+
+**Rule categories (12 rules + fallback):**
+1. Greetings — hi, hello, hey → welcome message + optional wave GIF
+2. Flowers — flower, bouquet, roses → product suggestions + taste-based text
+3. Fashion — fashion, outfit, style → product suggestions
+4. Friends — sarah, alex, friend, birthday → friend's taste profile summary + items
+5. Rating — rate, think, opinion → score + taste alignment
+6. Price — budget, cheap, expensive → price-sorted suggestions
+7. Quantity — how many, just one → quantity advice
+8. Occasion — dinner, party, wedding → event-appropriate suggestions
+9. Gratitude — thanks, perfect → warm response + GIF
+10. Style inquiry — my style, my taste → taste profile summary
+11. Help — help, what can you → capabilities list
+12. Fallback — no match → prompts user for more context
+
+**GIF library:** 12 GIPHY embed URLs stored as constants (wave, thinking, excited, flowers, thumbsUp, sparkle, heart, clap, chef, wink, love, dance).
+
+### Swapping Mock → API (Phase 7 Checklist)
+
+1. **Feed:** Replace `FEED_MOCK.slice()` in `useFeed` with `fetch(`/api/feed?page=${page}`)`. Keep pagination logic.
+2. **Chat:** Replace `getMockResponse()` call in `useChat` with `fetch('/api/chat', { body: { message, contactId } })`. Keep typing delay UX.
+3. **Connections:** Replace `CONNECTIONS_MOCK` initial state with `useEffect → fetch('/api/connections')`. Replace `SEARCH_RESULTS_MOCK` filter with `fetch(`/api/connections/search?username=${query}`)`.
+4. **User:** Replace `CURRENT_USER` import with auth context value (from JWT decode or `/api/profile`).
+5. **TasteContext:** Hydrate initial `likedItems`/`dislikedItems` from `GET /api/profile` instead of empty arrays.
 
 ---
 
 ## Design Language
 
 ### Aesthetic
-- **Warm, elegant, lotus-inspired** — earthy tones with luxe accents
-- Influences: botanical gardens, Japanese minimalism, warm luxury
-- No bright primary colors. No clutter. Timeless and serene.
+- **Simple, elegant, clean** — 
+- Inspired by: Pinterest layout, Instagram navigation, Aesop/Glossier minimalism
+- No emoji in UI. No bright primary colors. No clutter.
 
 ### Color Palette
 - **Background:** `#FDFBD4` (butter cream — warm, soft, inviting)
@@ -544,52 +667,67 @@ Like Instagram's saved/tagged tab switcher:
   - [ ] Loading state + skeleton cards
 
 ### Phase 3: Frontend — Profile Page
-- [ ] **3.1 — Profile Header**
-  - [ ] User display: avatar placeholder, name, username
-  - [ ] Stats: total likes, total dismissed
+- [x] **3.1 — Profile Header**
+  - [x] User display: avatar placeholder, username (primary), assistant name (secondary)
+  - [x] Stats: total likes, total dismissed
   - [ ] Edit button (placeholder for later)
 
-- [ ] **3.2 — Taste Timeline — Two Tabs**
-  - [ ] **Liked tab** — masonry grid of hearted items (reverse-chronological)
-  - [ ] **Dismissed tab** — masonry grid of X'd items (reverse-chronological)
-  - [ ] Tab switcher (like Instagram saved/tagged)
-  - [ ] Tap item to undo (un-like or un-dismiss)
-  - [ ] Read from local state
+- [x] **3.2 — Taste Timeline — Two Tabs**
+  - [x] **Liked tab** — masonry grid of hearted items (reverse-chronological)
+  - [x] **Dismissed tab** — masonry grid of X'd items (reverse-chronological)
+  - [x] Tab switcher (like Instagram saved/tagged)
+  - [x] Tap item to undo (un-like or un-dismiss)
+  - [x] Read from TasteContext global state
 
 ### Phase 3b: Frontend — Connections Page
-- [ ] **3.3 — Friends List**
-  - [ ] List of connected friends (profile picture + username only)
-  - [ ] No preference data visible
-  - [ ] Remove friend (swipe or tap menu)
+- [x] **3.3 — Friends List**
+  - [x] List of connected friends (username primary + assistant name secondary)
+  - [x] No preference data visible
+  - [x] Remove friend via button
 
-- [ ] **3.4 — Add Friend**
-  - [ ] Search bar to find users by username
-  - [ ] Search results show profile picture + username
-  - [ ] Tap to send connection request
-  - [ ] Mock data for now
+- [x] **3.4 — Add Friend**
+  - [x] Search bar to find users by username
+  - [x] Search results show username + assistant name
+  - [x] Tap to send connection request (creates pending)
+  - [x] Mock data for now
+
+- [x] **3.5 — Pending Requests**
+  - [x] Pending requests section above accepted friends
+  - [x] Preview: 3 latest incoming with Accept/Decline
+  - [x] "Show all" expands full incoming + outgoing
+  - [x] Outgoing shows "Requested" label
+  - [x] Connection status: pending → accepted on accept
 
 ### Phase 4: Frontend — Chat Page
-- [ ] **4.1 — Chat Layout**
-  - [ ] Messenger-style: chat bubbles, input bar at bottom
-  - [ ] User bubbles (right, light background) vs assistant bubbles (left, muted background)
-  - [ ] Timestamp on each message (optional)
+- [x] **4.1 — Chat Layout**
+  - [x] Two-panel: contact list (left/full mobile) + conversation (right/full mobile)
+  - [x] Desktop: sidebar always visible alongside chat
+  - [x] Mobile: contact list screen → tap → chat screen with back button
+  - [x] User bubbles (right, dark-brown bg) vs assistant bubbles (left, white/glass bg)
 
-- [ ] **4.2 — Chat Bubbles + Formatting**
-  - [ ] Text wrapping, emoji support
-  - [ ] Links in responses (product suggestions)
-  - [ ] Image thumbnail previews (for future AI analysis)
+- [x] **4.2 — Chat Contact List**
+  - [x] First contact: user's own assistant (privateAssistantName)
+  - [x] Remaining: each accepted friend's assistant
+  - [x] Active contact highlighted
 
-- [ ] **4.3 — Chat Input + Send**
-  - [ ] Text input field, send button
-  - [ ] Image upload button (optional, no backend yet)
-  - [ ] Placeholder: "Ask for yourself or a friend..."
-  - [ ] Auto-focus after send
+- [x] **4.3 — Chat Bubbles + Formatting**
+  - [x] Text wrapping, emoji support
+  - [x] Links/text/advices in responses (product/advice suggestions)
+  - [x] Inline GIF display below text content
+  - [x] Product suggestion thumbnails in horizontal scroll
 
-- [ ] **4.4 — Mock Chat Responses**
-  - [ ] Hardcoded assistant responses based on keywords
-  - [ ] Example: "What would Sarah like?" → returns Sarah's mock taste summary
-  - [ ] Store conversation in `useState`
-  - [ ] Persist in sessionStorage (reload-safe)
+- [x] **4.4 — Chat Input + Send**
+  - [x] Text input field, send button
+  - [ ] Image upload button (no backend yet)
+  - [x] Placeholder: "Ask for yourself or a friend..."
+  - [x] Auto-focus after send
+
+- [x] **4.5 — Mock Chat Responses**
+  - [x] Keyword-matching AI responses via `lib/data/chatMock.ts`
+  - [x] 12 rule categories + fallback (see Mock Data Strategy section)
+  - [x] 12 GIPHY GIFs for personality
+  - [x] Simulated typing delay (0.8–2s)
+  - [x] Store conversation in `useState`
 
 ---
 
@@ -606,11 +744,11 @@ Like Instagram's saved/tagged tab switcher:
   - [ ] Database: `thelotusunion_dev`
 
 - [ ] **5.3 — TypeORM Entities**
-  - [ ] `User` (id, email, username, createdAt, updatedAt)
+  - [ ] `User` (id, email, username, privateAssistantName, createdAt, updatedAt)
   - [ ] `FeedItem` (id, name, description, image, category, brand, productLink, tags, colors, price)
   - [ ] `Like` (userId, itemId, likedAt)
   - [ ] `Dislike` (userId, itemId, dislikedAt)
-  - [ ] `Connection` (id, userId, friendId, createdAt)
+  - [ ] `Connection` (id, userId, friendId, status, initiatedBy, createdAt)
   - [ ] `ChatMessage` (id, userId, role, content, image?, timestamp)
 
 - [ ] **5.4 — Migrations**
@@ -755,5 +893,5 @@ DB_DATABASE=THE_LOTUS_UNION
 ---
 
 **Version:** 2.0.0 (Next.js + NestJS + PostgreSQL)
-**Last Updated:** April 7, 2026
+**Last Updated:** April 12, 2026
 **Status:** Production foundation — full-stack architecture
