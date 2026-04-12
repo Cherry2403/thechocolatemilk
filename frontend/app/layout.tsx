@@ -29,17 +29,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable} h-full antialiased`}>
-      <body className="bg-dark-brown text-text flex min-h-full flex-col font-sans">
+      <body className="bg-dark-brown text-cream flex min-h-full flex-col font-sans">
         <Providers>
           {/* ── Brand header — centered, floating, elegant ── */}
           <header className="flex items-center justify-center pt-8 pb-1 sm:pt-12">
-            <h1 className="text-cream font-serif text-[15px] font-light tracking-[0.25em] uppercase sm:text-[30px]">
+            <h1 className="font-serif text-[15px] font-light tracking-[0.25em] uppercase sm:text-[30px]">
               The Lotus Union
             </h1>
           </header>
 
-          {/* Main content — padded at bottom for the fixed nav */}
-          <main className="flex-1 pb-20">{children}</main>
+          {/* Main content — flex column so children can use flex-1, padded for fixed nav */}
+          <main className="flex min-h-0 flex-1 flex-col pb-20">{children}</main>
           <BottomNav />
         </Providers>
       </body>

@@ -38,7 +38,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-light-brown/20 bg-cream border-t px-4 py-3"
+      className="border-light-brown/10 border-t px-4 py-3"
     >
       <div className="flex items-center gap-2">
         {/* Text input */}

@@ -82,12 +82,12 @@ export default function ChatPage() {
   const handleBack = () => setActiveContactId(null);
 
   return (
-    <div className="flex h-[calc(100vh-8rem)]">
-      {/* ═══ Left side: contact list ═══ */}
+    <div className="flex min-h-0 flex-1 gap-3 px-3 sm:px-6">
+      {/* ═══ Left: contact list (cream card) ═══ */}
       {/* Desktop: always visible. Mobile: hidden when a chat is active */}
       <div
-        className={`border-light-brown/15 w-full flex-shrink-0 border-r md:w-72 lg:w-80 ${
-          activeContactId ? "hidden md:block" : "block"
+        className={`flex w-full min-h-0 flex-shrink-0 flex-col overflow-hidden rounded-2xl bg-cream text-text shadow-sm md:w-72 lg:w-80 ${
+          activeContactId ? "hidden md:flex" : "flex"
         }`}
       >
         <ChatContactList
@@ -97,18 +97,18 @@ export default function ChatPage() {
         />
       </div>
 
-      {/* ═══ Right side: conversation ═══ */}
+      {/* ═══ Right: conversation (cream card) ═══ */}
       {/* Desktop: always visible. Mobile: hidden when no chat selected */}
-      <div className={`flex flex-1 flex-col ${activeContactId ? "block" : "hidden md:flex"}`}>
+      <div className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-cream text-text shadow-sm ${activeContactId ? "flex" : "hidden md:flex"}`}>
         {!activeContact ? (
           /* ── Empty state (desktop) ── */
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="text-grey/50 text-sm italic">Select a conversation to start chatting</p>
+            <p className="text-grey text-sm italic">Select a conversation to start chatting</p>
           </div>
         ) : (
           <>
             {/* ── Chat header ── */}
-            <div className="border-light-brown/15 flex items-center gap-3 border-b px-4 py-3">
+            <div className="border-light-brown/10 flex items-center gap-3 border-b px-4 py-3">
               {/* Back button — mobile only */}
               <button
                 type="button"

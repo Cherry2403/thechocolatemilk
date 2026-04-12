@@ -13,8 +13,8 @@ function FeedIcon({ active }: { active: boolean }) {
       width="24"
       height="24"
       viewBox="0 0 24 24"
-      fill={active ? "var(--color-dark-brown)" : "none"}
-      stroke="var(--color-dark-brown)"
+      fill={active ? "var(--color-cream)" : "none"}
+      stroke="var(--color-cream)"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -33,8 +33,8 @@ function ChatIcon({ active }: { active: boolean }) {
       width="24"
       height="24"
       viewBox="0 0 24 24"
-      fill={active ? "var(--color-dark-brown)" : "none"}
-      stroke="var(--color-dark-brown)"
+      fill={active ? "var(--color-cream)" : "none"}
+      stroke="var(--color-cream)"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -50,8 +50,8 @@ function ConnectionsIcon({ active }: { active: boolean }) {
       width="24"
       height="24"
       viewBox="0 0 24 24"
-      fill={active ? "var(--color-dark-brown)" : "none"}
-      stroke="var(--color-dark-brown)"
+      fill={active ? "var(--color-cream)" : "none"}
+      stroke="var(--color-cream)"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -70,8 +70,8 @@ function ProfileIcon({ active }: { active: boolean }) {
       width="24"
       height="24"
       viewBox="0 0 24 24"
-      fill={active ? "var(--color-dark-brown)" : "none"}
-      stroke="var(--color-dark-brown)"
+      fill={active ? "var(--color-cream)" : "none"}
+      stroke="var(--color-cream)"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -97,7 +97,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-light-brown/20 fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t bg-cream/50 pb-[env(safe-area-inset-bottom)]">
+    <nav className="border-light-brown/20 fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t bg-dark-brown/90 backdrop-blur-sm pb-[env(safe-area-inset-bottom)]">
       {NAV_ITEMS.map(({ href, label, Icon }) => {
         const isActive = pathname.startsWith(href);
 

@@ -29,7 +29,7 @@ function ProfileCard({ item, onUndo }: { item: FeedItem; onUndo: (id: string) =>
 
         {/* Subtle undo hint on hover */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/10">
-          <span className="text-dark-brown rounded-full bg-white/90 px-3 py-1 text-xs font-medium opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100">
+          <span className="text-dark-brown rounded-full bg-cream/90 px-3 py-1 text-xs font-medium opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100">
             Undo
           </span>
         </div>
@@ -50,14 +50,14 @@ export default function TasteTimeline() {
   return (
     <div>
       {/* ── Tab switcher (Instagram-style) ── */}
-      <div className="border-light-brown/20 flex border-b">
+      <div className="border-cream/20 flex border-b">
         <button
           type="button"
           onClick={() => setTab("liked")}
           className={`flex-1 py-3 text-center text-xs tracking-widest uppercase transition-colors ${
             tab === "liked"
-              ? "border-dark-brown text-dark-brown border-b-2 font-medium"
-              : "text-grey/50"
+              ? "border-cream text-cream border-b-2 font-medium"
+              : "text-cream/40"
           }`}
         >
           Liked
@@ -67,8 +67,8 @@ export default function TasteTimeline() {
           onClick={() => setTab("dismissed")}
           className={`flex-1 py-3 text-center text-xs tracking-widest uppercase transition-colors ${
             tab === "dismissed"
-              ? "border-dark-brown text-dark-brown border-b-2 font-medium"
-              : "text-grey/50"
+              ? "border-cream text-cream border-b-2 font-medium"
+              : "text-cream/40"
           }`}
         >
           Dismissed
@@ -78,7 +78,7 @@ export default function TasteTimeline() {
       {/* ── Grid or empty state ── */}
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-grey/50 text-sm italic">
+          <p className="text-cream/50 text-sm italic">
             {tab === "liked"
               ? "Heart items in your feed to see them here."
               : "Dismissed items will appear here."}

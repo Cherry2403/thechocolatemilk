@@ -62,7 +62,7 @@ export default function ConnectionsPage() {
   }, []);
 
   return (
-    <div>
+    <div className="mt-2 rounded-t-3xl bg-cream pt-5 pb-6 text-text shadow-[0_-8px_24px_rgba(0,0,0,0.1)]">
       <UsernameSearch onAdd={handleAdd} existingIds={existingIds} />
 
       {/* Pending incoming requests — shown above friends */}
