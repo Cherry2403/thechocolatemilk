@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+build
+dist
+*.pem
+.env*
+.vercel
+.DS_Store
+.git
