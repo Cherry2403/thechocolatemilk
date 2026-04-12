@@ -11,9 +11,7 @@ const YEAR = DAY * 365;
  * e.g. "2m ago", "3h ago"
  */
 export function timeAgo(dateString: string): string {
-  const seconds = Math.floor(
-    (Date.now() - new Date(dateString).getTime()) / 1000,
-  );
+  const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
 
   if (seconds < 0) return "just now";
   if (seconds < MINUTE) return "just now";
@@ -104,8 +102,9 @@ export function formatChatTime(dateString: string): string {
   // Check if within the last 7 calendar days
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diffDays = Math.floor(
-    (startOfToday.getTime() - new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()) /
-      (1000 * DAY),
+    (startOfToday.getTime() -
+      new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()) /
+      (1000 * DAY)
   );
 
   if (diffDays > 0 && diffDays < 7) {
@@ -128,14 +127,12 @@ export const CHAT_TIME_GAP_MINUTES = 5;
  */
 export function shouldShowTimeSeparator(
   prevTimestamp: string | null,
-  currentTimestamp: string,
+  currentTimestamp: string
 ): string | null {
   if (!prevTimestamp) return formatChatTime(currentTimestamp);
 
   const gap =
-    (new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime()) /
-    1000 /
-    60;
+    (new Date(currentTimestamp).getTime() - new Date(prevTimestamp).getTime()) / 1000 / 60;
 
   if (gap >= CHAT_TIME_GAP_MINUTES) {
     return formatChatTime(currentTimestamp);

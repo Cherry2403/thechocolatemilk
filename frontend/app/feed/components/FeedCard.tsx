@@ -26,7 +26,7 @@ export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
 
   const handleAction = useCallback(
     (action: "like" | "dislike") => {
-      if (isAnimating.current) return;          // guard against rapid double-click
+      if (isAnimating.current) return; // guard against rapid double-click
       isAnimating.current = true;
       pendingAction.current = action;
       const el = wrapperRef.current;
@@ -35,8 +35,7 @@ export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
       // ── Phase 1: Freeze height, fade out + scale + drift up ──
       el.style.height = `${el.offsetHeight}px`;
       el.style.overflow = "hidden";
-      el.style.transition =
-        "opacity 220ms ease-out, transform 220ms ease-out";
+      el.style.transition = "opacity 220ms ease-out, transform 220ms ease-out";
 
       requestAnimationFrame(() => {
         el.style.opacity = "0";
@@ -57,12 +56,12 @@ export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
         else onDislike(item.id);
       }, 560);
     },
-    [item.id, onLike, onDislike],
+    [item.id, onLike, onDislike]
   );
 
   return (
     <div ref={wrapperRef} className="mb-3">
-      <div className="group relative overflow-hidden rounded-[5px] bg-surface shadow-sm">
+      <div className="group bg-surface relative overflow-hidden rounded-[5px] shadow-sm">
         {/* Image — natural aspect ratio, fills column width */}
         <Image
           src={item.image}
@@ -74,13 +73,13 @@ export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
         />
 
         {/* Gradient overlay + action buttons */}
-        <div className="absolute inset-x-0 top-0 flex items-center justify-center gap-14 from-black/25 to-transparent pb-3 pt-3 opacity-100 transition-opacity duration-200 max-md:opacity-100">
+        <div className="absolute inset-x-0 top-0 flex items-center justify-center gap-14 from-black/25 to-transparent pt-3 pb-3 opacity-100 transition-opacity duration-200 max-md:opacity-100">
           {/* Dismiss (X) */}
           <button
             type="button"
             aria-label="Dismiss"
             onClick={() => handleAction("dislike")}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-dark-brown/70 shadow-md backdrop-blur-sm transition-transform duration-150 active:scale-90"
+            className="bg-dark-brown/70 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-transform duration-150 active:scale-90"
           >
             <svg
               width="18"
@@ -101,7 +100,7 @@ export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
             type="button"
             aria-label="Like"
             onClick={() => handleAction("like")}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-dark-red/60 shadow-md backdrop-blur-sm transition-transform duration-150 active:scale-90"
+            className="bg-dark-red/60 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-transform duration-150 active:scale-90"
           >
             <svg
               width="18"

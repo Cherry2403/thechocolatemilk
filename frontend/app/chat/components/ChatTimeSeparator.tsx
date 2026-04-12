@@ -16,7 +16,7 @@ interface ChatTimeSeparatorProps {
 export default function ChatTimeSeparator({ label }: ChatTimeSeparatorProps) {
   return (
     <div className="my-4 flex items-center justify-center">
-      <span className="text-[11px] text-grey/40">{label}</span>
+      <span className="text-grey/40 text-[11px]">{label}</span>
     </div>
   );
 }

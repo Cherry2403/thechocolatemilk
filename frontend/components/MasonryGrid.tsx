@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Children,
-  useCallback,
-  useRef,
-  type ReactElement,
-  type ReactNode,
-} from "react";
+import { Children, useCallback, useRef, type ReactElement, type ReactNode } from "react";
 import { useColumnCount } from "@/hooks/useColumnCount";
 
 interface MasonryGridProps {
@@ -26,11 +20,7 @@ interface MasonryGridProps {
  *
  * Column count: 2 (mobile) → 3 (tablet) → 4 (desktop) → 5 (wide).
  */
-export default function MasonryGrid({
-  children,
-  onLoadMore,
-  hasMore = false,
-}: MasonryGridProps) {
+export default function MasonryGrid({ children, onLoadMore, hasMore = false }: MasonryGridProps) {
   const columnCount = useColumnCount();
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -49,10 +39,7 @@ export default function MasonryGrid({
   }
 
   const childArray = Children.toArray(children);
-  const columns: ReactNode[][] = Array.from(
-    { length: columnCount },
-    () => [],
-  );
+  const columns: ReactNode[][] = Array.from({ length: columnCount }, () => []);
 
   childArray.forEach((child) => {
     const key = String((child as ReactElement).key ?? "");
@@ -76,11 +63,11 @@ export default function MasonryGrid({
         ([entry]) => {
           if (entry.isIntersecting) onLoadMore();
         },
-        { rootMargin: "200px" },
+        { rootMargin: "200px" }
       );
       observerRef.current.observe(node);
     },
-    [onLoadMore],
+    [onLoadMore]
   );
 
   return (
@@ -96,7 +83,7 @@ export default function MasonryGrid({
       {/* Sentinel for infinite scroll */}
       {hasMore && (
         <div ref={sentinelRef} className="flex justify-center py-8">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-dark-brown border-t-transparent" />
+          <div className="border-dark-brown h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
         </div>
       )}
     </div>

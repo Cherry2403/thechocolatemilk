@@ -55,7 +55,7 @@ export default function ConfirmDialog({
         if (!dialog) return;
 
         const focusable = dialog.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
         if (focusable.length === 0) return;
 
@@ -98,29 +98,29 @@ export default function ConfirmDialog({
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         aria-describedby="confirm-dialog-desc"
-        className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white shadow-lg"
+        className="fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white shadow-lg"
       >
         {/* Header */}
-        <div className="border-b border-light-brown/10 px-6 py-4">
-          <h2 id="confirm-dialog-title" className="text-base font-medium text-text">
+        <div className="border-light-brown/10 border-b px-6 py-4">
+          <h2 id="confirm-dialog-title" className="text-text text-base font-medium">
             {title}
           </h2>
         </div>
 
         {/* Content */}
         <div className="px-6 py-4">
-          <p id="confirm-dialog-desc" className="text-sm text-grey/70">
+          <p id="confirm-dialog-desc" className="text-grey/70 text-sm">
             {message}
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 border-t border-light-brown/10 px-6 py-4">
+        <div className="border-light-brown/10 flex gap-3 border-t px-6 py-4">
           <button
             ref={cancelRef}
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-lg bg-light-brown/10 px-4 py-2 text-sm font-medium text-dark-brown transition-colors hover:bg-light-brown/20"
+            className="bg-light-brown/10 text-dark-brown hover:bg-light-brown/20 flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           >
             {cancelText}
           </button>

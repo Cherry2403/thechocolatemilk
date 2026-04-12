@@ -33,17 +33,17 @@ export default function PendingRequests({
   const hasMore = total > PREVIEW_COUNT;
 
   return (
-    <div className="px-4 pb-2 pt-3">
+    <div className="px-4 pt-3 pb-2">
       {/* Section header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-medium uppercase tracking-widest text-grey/60">
+        <h3 className="text-grey/60 text-xs font-medium tracking-widest uppercase">
           Pending {total > 0 && `(${total})`}
         </h3>
         {hasMore && (
           <button
             type="button"
             onClick={() => setExpanded((p) => !p)}
-            className="text-xs text-dark-brown/70 transition-colors hover:text-dark-brown"
+            className="text-dark-brown/70 hover:text-dark-brown text-xs transition-colors"
           >
             {expanded ? "Show less" : "Show all"}
           </button>
@@ -51,21 +51,19 @@ export default function PendingRequests({
       </div>
 
       {/* Incoming requests */}
-      <div className="mt-2 space-y-0 divide-y divide-light-brown/10">
+      <div className="divide-light-brown/10 mt-2 space-y-0 divide-y">
         {previewIncoming.map((conn) => (
           <div key={conn.id} className="flex items-center gap-3 py-3">
             {/* Avatar initial */}
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-light-pink/40 text-sm font-medium text-dark-brown">
+            <div className="bg-light-pink/40 text-dark-brown flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-medium">
               {conn.friendUsername.charAt(0).toUpperCase()}
             </div>
 
             {/* Username (primary) + assistant name (secondary) */}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-text">
-                @{conn.friendUsername}
-              </p>
+              <p className="text-text truncate text-sm font-medium">@{conn.friendUsername}</p>
               {conn.friendAssistantName && (
-                <p className="truncate text-[11px] text-grey/50">
+                <p className="text-grey/50 truncate text-[11px]">
                   Assistant: {conn.friendAssistantName}
                 </p>
               )}
@@ -76,14 +74,14 @@ export default function PendingRequests({
               <button
                 type="button"
                 onClick={() => onAccept(conn.id)}
-                className="rounded-full bg-green/10 px-3 py-1 text-xs font-medium text-green transition-colors hover:bg-green/20"
+                className="bg-green/10 text-green hover:bg-green/20 rounded-full px-3 py-1 text-xs font-medium transition-colors"
               >
                 Accept
               </button>
               <button
                 type="button"
                 onClick={() => onDecline(conn.id)}
-                className="rounded-full bg-dark-red/5 px-3 py-1 text-xs font-medium text-dark-red/60 transition-colors hover:bg-dark-red/10"
+                className="bg-dark-red/5 text-dark-red/60 hover:bg-dark-red/10 rounded-full px-3 py-1 text-xs font-medium transition-colors"
               >
                 Decline
               </button>
@@ -95,28 +93,24 @@ export default function PendingRequests({
         {showOutgoing &&
           outgoing.map((conn) => (
             <div key={conn.id} className="flex items-center gap-3 py-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-light-brown/15 text-sm font-medium text-dark-brown/60">
+              <div className="bg-light-brown/15 text-dark-brown/60 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-medium">
                 {conn.friendUsername.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-text/70">
-                  @{conn.friendUsername}
-                </p>
+                <p className="text-text/70 truncate text-sm font-medium">@{conn.friendUsername}</p>
                 {conn.friendAssistantName && (
-                  <p className="truncate text-[11px] text-grey/40">
+                  <p className="text-grey/40 truncate text-[11px]">
                     Assistant: {conn.friendAssistantName}
                   </p>
                 )}
               </div>
-              <span className="text-[11px] italic text-grey/40">
-                Requested
-              </span>
+              <span className="text-grey/40 text-[11px] italic">Requested</span>
             </div>
           ))}
       </div>
 
       {/* Divider between pending and accepted */}
-      <div className="mt-2 border-b border-light-brown/20" />
+      <div className="border-light-brown/20 mt-2 border-b" />
     </div>
   );
 }

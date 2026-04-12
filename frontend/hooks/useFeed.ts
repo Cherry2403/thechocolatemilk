@@ -63,7 +63,7 @@ export function useFeed(): UseFeedReturn {
       if (item) addLike(item);
       setItems((prev) => prev.filter((i) => i.id !== id));
     },
-    [addLike],
+    [addLike]
   );
 
   const dislike = useCallback(
@@ -72,7 +72,7 @@ export function useFeed(): UseFeedReturn {
       if (item) addDislike(item);
       setItems((prev) => prev.filter((i) => i.id !== id));
     },
-    [addDislike],
+    [addDislike]
   );
 
   return { items, hasMore, loadMore, like, dislike };

@@ -26,13 +26,13 @@ export default function ChatPage() {
       assistantName: CURRENT_USER.privateAssistantName,
       isOwnAssistant: true,
     };
-    const friends: ChatContact[] = CONNECTIONS_MOCK.filter(
-      (c) => c.status === "accepted",
-    ).map((c) => ({
-      id: c.friendId ?? c.id,
-      username: c.friendUsername,
-      assistantName: c.friendAssistantName ?? "Assistant",
-    }));
+    const friends: ChatContact[] = CONNECTIONS_MOCK.filter((c) => c.status === "accepted").map(
+      (c) => ({
+        id: c.friendId ?? c.id,
+        username: c.friendUsername,
+        assistantName: c.friendAssistantName ?? "Assistant",
+      })
+    );
     return [own, ...friends];
   }, []);
 
@@ -69,7 +69,7 @@ export default function ChatPage() {
       if (!activeContactId) return;
       sendMessage(activeContactId, content);
     },
-    [activeContactId, sendMessage],
+    [activeContactId, sendMessage]
   );
 
   /* ── Auto-scroll ── */
@@ -89,7 +89,7 @@ export default function ChatPage() {
       {/* ═══ Left side: contact list ═══ */}
       {/* Desktop: always visible. Mobile: hidden when a chat is active */}
       <div
-        className={`w-full flex-shrink-0 border-r border-light-brown/15 md:w-72 lg:w-80 ${
+        className={`border-light-brown/15 w-full flex-shrink-0 border-r md:w-72 lg:w-80 ${
           activeContactId ? "hidden md:block" : "block"
         }`}
       >
@@ -102,27 +102,21 @@ export default function ChatPage() {
 
       {/* ═══ Right side: conversation ═══ */}
       {/* Desktop: always visible. Mobile: hidden when no chat selected */}
-      <div
-        className={`flex flex-1 flex-col ${
-          activeContactId ? "block" : "hidden md:flex"
-        }`}
-      >
+      <div className={`flex flex-1 flex-col ${activeContactId ? "block" : "hidden md:flex"}`}>
         {!activeContact ? (
           /* ── Empty state (desktop) ── */
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="text-sm italic text-grey/50">
-              Select a conversation to start chatting
-            </p>
+            <p className="text-grey/50 text-sm italic">Select a conversation to start chatting</p>
           </div>
         ) : (
           <>
             {/* ── Chat header ── */}
-            <div className="flex items-center gap-3 border-b border-light-brown/15 px-4 py-3">
+            <div className="border-light-brown/15 flex items-center gap-3 border-b px-4 py-3">
               {/* Back button — mobile only */}
               <button
                 type="button"
                 onClick={handleBack}
-                className="mr-1 text-grey/60 md:hidden"
+                className="text-grey/60 mr-1 md:hidden"
                 aria-label="Back"
               >
                 <svg
@@ -139,14 +133,12 @@ export default function ChatPage() {
                 </svg>
               </button>
 
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-light-brown/20 text-xs font-medium text-dark-brown">
+              <div className="bg-light-brown/20 text-dark-brown flex h-9 w-9 items-center justify-center rounded-full text-xs font-medium">
                 {activeContact.assistantName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-medium text-text">
-                  {activeContact.assistantName}
-                </p>
-                <p className="text-[11px] text-grey/50">
+                <p className="text-text text-sm font-medium">{activeContact.assistantName}</p>
+                <p className="text-grey/50 text-[11px]">
                   {activeContact.isOwnAssistant
                     ? "Your assistant"
                     : `@${activeContact.username}'s assistant`}
@@ -155,13 +147,10 @@ export default function ChatPage() {
             </div>
 
             {/* ── Messages area ── */}
-            <div
-              ref={scrollRef}
-              className="flex-1 overflow-y-auto px-4 py-4"
-            >
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
               {messages.length === 0 && (
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <p className="text-sm italic text-grey/50">
+                  <p className="text-grey/50 text-sm italic">
                     {activeContact.isOwnAssistant
                       ? "Ask me about flowers, fashion, or gift ideas..."
                       : `Ask ${activeContact.assistantName} about what @${activeContact.username} would love...`}
@@ -172,7 +161,7 @@ export default function ChatPage() {
               {messages.map((msg, idx) => {
                 const separator = shouldShowTimeSeparator(
                   idx > 0 ? messages[idx - 1].timestamp : null,
-                  msg.timestamp,
+                  msg.timestamp
                 );
                 return (
                   <div key={msg.id}>
@@ -188,15 +177,15 @@ export default function ChatPage() {
                   <div className="rounded-2xl rounded-bl-md bg-white/80 px-4 py-3 shadow-sm">
                     <div className="flex gap-1">
                       <span
-                        className="h-2 w-2 animate-bounce rounded-full bg-grey/40"
+                        className="bg-grey/40 h-2 w-2 animate-bounce rounded-full"
                         style={{ animationDelay: "0ms" }}
                       />
                       <span
-                        className="h-2 w-2 animate-bounce rounded-full bg-grey/40"
+                        className="bg-grey/40 h-2 w-2 animate-bounce rounded-full"
                         style={{ animationDelay: "150ms" }}
                       />
                       <span
-                        className="h-2 w-2 animate-bounce rounded-full bg-grey/40"
+                        className="bg-grey/40 h-2 w-2 animate-bounce rounded-full"
                         style={{ animationDelay: "300ms" }}
                       />
                     </div>
