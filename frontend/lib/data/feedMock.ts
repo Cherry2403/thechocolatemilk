@@ -314,5 +314,3 @@ export const FEED_MOCK: FeedItem[] = [
     currency: "USD",
   },
 ];
-
-

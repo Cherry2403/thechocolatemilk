@@ -27,10 +27,8 @@ export default function FriendList({ connections, onRemove }: FriendListProps) {
   if (connections.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-sm italic text-grey/50">No connections yet.</p>
-        <p className="mt-1 text-xs text-grey/40">
-          Search above to add friends.
-        </p>
+        <p className="text-grey/50 text-sm italic">No connections yet.</p>
+        <p className="text-grey/40 mt-1 text-xs">Search above to add friends.</p>
       </div>
     );
   }
@@ -38,34 +36,32 @@ export default function FriendList({ connections, onRemove }: FriendListProps) {
   return (
     <>
       <div className="px-4">
-        <h3 className="pb-2 pt-3 text-xs font-medium uppercase tracking-widest text-grey/60">
+        <h3 className="text-grey/60 pt-3 pb-2 text-xs font-medium tracking-widest uppercase">
           Friends ({connections.length})
         </h3>
-        <div className="divide-y divide-light-brown/10">
-            {connections.map((conn) => (
-                <div key={conn.id} className="flex items-center gap-3 py-3">
-                    {/* Avatar initial */}
-                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-light-brown/20 text-sm font-medium text-dark-brown">
-                    {conn.friendUsername.charAt(0).toUpperCase()}
-                    </div>
+        <div className="divide-light-brown/10 divide-y">
+          {connections.map((conn) => (
+            <div key={conn.id} className="flex items-center gap-3 py-3">
+              {/* Avatar initial */}
+              <div className="bg-light-brown/20 text-dark-brown flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-sm font-medium">
+                {conn.friendUsername.charAt(0).toUpperCase()}
+              </div>
 
-                    {/* Username (primary) + assistant name (secondary) */}
-                    <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-text">
-                        @{conn.friendUsername}
-                    </p>
-                    {conn.friendAssistantName && (
-                        <p className="truncate text-[11px] text-grey/50">
-                        Assistant: {conn.friendAssistantName}
-                        </p>
-                    )}
-                    </div>
+              {/* Username (primary) + assistant name (secondary) */}
+              <div className="min-w-0 flex-1">
+                <p className="text-text truncate text-sm font-medium">@{conn.friendUsername}</p>
+                {conn.friendAssistantName && (
+                  <p className="text-grey/50 truncate text-[11px]">
+                    Assistant: {conn.friendAssistantName}
+                  </p>
+                )}
+              </div>
 
               {/* Remove action */}
               <button
                 type="button"
                 onClick={() => setConfirmRemoveId(conn.id)}
-                className="px-2 py-1 text-xs text-grey/40 transition-colors hover:text-dark-red"
+                className="text-grey/40 hover:text-dark-red px-2 py-1 text-xs transition-colors"
               >
                 Remove
               </button>
@@ -82,8 +78,8 @@ export default function FriendList({ connections, onRemove }: FriendListProps) {
           friendToRemove ? (
             <>
               Are you sure you want to remove{" "}
-              <span className="font-medium">@{friendToRemove.friendUsername}</span>?
-              You won't be able to chat with their assistant or see their recommendations.
+              <span className="font-medium">@{friendToRemove.friendUsername}</span>? You won't be
+              able to chat with their assistant or see their recommendations.
             </>
           ) : (
             "Remove this connection?"

@@ -6,22 +6,22 @@
   --font-serif: var(--font-cormorant), ui-serif, Georgia, Cambria, serif;
 
   /* ── Lotus Color Palette ── */
-  --color-bg: #F9E4DC;
-  --color-white: #FFFFFF;
-  --color-text: #1B1B1B;
+  --color-bg: #f9e4dc;
+  --color-white: #ffffff;
+  --color-text: #1b1b1b;
   --color-green: #004225;
-  --color-green-light: #2D6A4F;
-  --color-cream-pink: #F9E4DC;
-  --color-light-pink: #FFD4D4;
+  --color-green-light: #2d6a4f;
+  --color-cream-pink: #f9e4dc;
+  --color-light-pink: #ffd4d4;
   --color-grey: #454545;
-  --color-light-brown: #C4A484;
-  --color-dark-brown: #5C4033;
+  --color-light-brown: #c4a484;
+  --color-dark-brown: #5c4033;
   --color-dark-red: #550000;
-  --color-cream: #FDFBD4;
-  --color-butter-yellow: #D4A843;
+  --color-cream: #fdfbd4;
+  --color-butter-yellow: #d4a843;
 }
 
 body {
-  background-color: #FDFBD4;
+  background-color: #fdfbd4;
   color: var(--color-text);
 }

@@ -33,22 +33,16 @@ export function useChat() {
   typingMapRef.current = typingMap;
 
   /** Get messages for a specific contact. */
-  const getMessages = useCallback(
-    (contactId: string | null): ChatMessage[] => {
-      if (!contactId) return [];
-      return chatMapRef.current[contactId] ?? [];
-    },
-    [],
-  );
+  const getMessages = useCallback((contactId: string | null): ChatMessage[] => {
+    if (!contactId) return [];
+    return chatMapRef.current[contactId] ?? [];
+  }, []);
 
   /** Check if a contact's assistant is currently "typing". */
-  const getIsTyping = useCallback(
-    (contactId: string | null): boolean => {
-      if (!contactId) return false;
-      return typingMapRef.current[contactId] ?? false;
-    },
-    [],
-  );
+  const getIsTyping = useCallback((contactId: string | null): boolean => {
+    if (!contactId) return false;
+    return typingMapRef.current[contactId] ?? false;
+  }, []);
 
   /** Get the last message for a contact (used for contact list preview). */
   const getLastMessage = useCallback(
@@ -58,52 +52,49 @@ export function useChat() {
       const last = msgs[msgs.length - 1];
       return { content: last.content, timestamp: last.timestamp };
     },
-    [],
+    []
   );
 
   /** Send a message within a specific contact's conversation. */
-  const sendMessage = useCallback(
-    (contactId: string, content: string) => {
-      /* ── 1. Add user message immediately ── */
-      const userMsg: ChatMessage = {
+  const sendMessage = useCallback((contactId: string, content: string) => {
+    /* ── 1. Add user message immediately ── */
+    const userMsg: ChatMessage = {
+      id: `msg-${++idCounter.current}`,
+      userId: "user-01",
+      role: "user",
+      content,
+      timestamp: new Date().toISOString(),
+    };
+
+    setChatMap((prev) => ({
+      ...prev,
+      [contactId]: [...(prev[contactId] ?? []), userMsg],
+    }));
+    setTypingMap((prev) => ({ ...prev, [contactId]: true }));
+
+    /* ── 2. Simulate AI thinking delay ── */
+    const delay = AI_DELAY_MIN + Math.random() * (AI_DELAY_MAX - AI_DELAY_MIN);
+
+    setTimeout(() => {
+      const mock = getMockResponse(content);
+
+      const assistantMsg: ChatMessage = {
         id: `msg-${++idCounter.current}`,
-        userId: "user-01",
-        role: "user",
-        content,
+        userId: "assistant",
+        role: "assistant",
+        content: mock.content,
+        gif: mock.gif,
+        suggestions: mock.suggestions,
         timestamp: new Date().toISOString(),
       };
 
       setChatMap((prev) => ({
         ...prev,
-        [contactId]: [...(prev[contactId] ?? []), userMsg],
+        [contactId]: [...(prev[contactId] ?? []), assistantMsg],
       }));
-      setTypingMap((prev) => ({ ...prev, [contactId]: true }));
-
-      /* ── 2. Simulate AI thinking delay ── */
-      const delay = AI_DELAY_MIN + Math.random() * (AI_DELAY_MAX - AI_DELAY_MIN);
-
-      setTimeout(() => {
-        const mock = getMockResponse(content);
-
-        const assistantMsg: ChatMessage = {
-          id: `msg-${++idCounter.current}`,
-          userId: "assistant",
-          role: "assistant",
-          content: mock.content,
-          gif: mock.gif,
-          suggestions: mock.suggestions,
-          timestamp: new Date().toISOString(),
-        };
-
-        setChatMap((prev) => ({
-          ...prev,
-          [contactId]: [...(prev[contactId] ?? []), assistantMsg],
-        }));
-        setTypingMap((prev) => ({ ...prev, [contactId]: false }));
-      }, delay);
-    },
-    [],
-  );
+      setTypingMap((prev) => ({ ...prev, [contactId]: false }));
+    }, delay);
+  }, []);
 
   return { chatMap, getMessages, getIsTyping, getLastMessage, sendMessage };
 }

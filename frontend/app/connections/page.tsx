@@ -10,45 +10,32 @@ import UsernameSearch from "./components/UsernameSearch";
 const CURRENT_USER_ID = "user-01";
 
 export default function ConnectionsPage() {
-  const [connections, setConnections] =
-    useState<Connection[]>(CONNECTIONS_MOCK);
+  const [connections, setConnections] = useState<Connection[]>(CONNECTIONS_MOCK);
 
   /* ── Derived lists ── */
-  const accepted = useMemo(
-    () => connections.filter((c) => c.status === "accepted"),
-    [connections],
-  );
+  const accepted = useMemo(() => connections.filter((c) => c.status === "accepted"), [connections]);
 
   const pendingIncoming = useMemo(
-    () =>
-      connections.filter(
-        (c) => c.status === "pending" && c.initiatedBy !== CURRENT_USER_ID,
-      ),
-    [connections],
+    () => connections.filter((c) => c.status === "pending" && c.initiatedBy !== CURRENT_USER_ID),
+    [connections]
   );
 
   const pendingOutgoing = useMemo(
-    () =>
-      connections.filter(
-        (c) => c.status === "pending" && c.initiatedBy === CURRENT_USER_ID,
-      ),
-    [connections],
+    () => connections.filter((c) => c.status === "pending" && c.initiatedBy === CURRENT_USER_ID),
+    [connections]
   );
 
   /** IDs already connected or pending — filter from search results. */
   const existingIds = useMemo(
-    () =>
-      new Set(
-        connections.map((c) => c.friendId).filter(Boolean) as string[],
-      ),
-    [connections],
+    () => new Set(connections.map((c) => c.friendId).filter(Boolean) as string[]),
+    [connections]
   );
 
   /* ── Actions ── */
 
   const handleAccept = useCallback((id: string) => {
     setConnections((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: "accepted" as const } : c)),
+      prev.map((c) => (c.id === id ? { ...c, status: "accepted" as const } : c))
     );
   }, []);
 
@@ -60,22 +47,19 @@ export default function ConnectionsPage() {
     setConnections((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
-  const handleAdd = useCallback(
-    (userId: string, username: string, assistantName: string) => {
-      const newConn: Connection = {
-        id: `conn-${Date.now()}`,
-        userId: CURRENT_USER_ID,
-        friendId: userId,
-        friendUsername: username,
-        friendAssistantName: assistantName,
-        status: "pending",
-        initiatedBy: CURRENT_USER_ID,
-        createdAt: new Date().toISOString(),
-      };
-      setConnections((prev) => [newConn, ...prev]);
-    },
-    [],
-  );
+  const handleAdd = useCallback((userId: string, username: string, assistantName: string) => {
+    const newConn: Connection = {
+      id: `conn-${Date.now()}`,
+      userId: CURRENT_USER_ID,
+      friendId: userId,
+      friendUsername: username,
+      friendAssistantName: assistantName,
+      status: "pending",
+      initiatedBy: CURRENT_USER_ID,
+      createdAt: new Date().toISOString(),
+    };
+    setConnections((prev) => [newConn, ...prev]);
+  }, []);
 
   return (
     <div>

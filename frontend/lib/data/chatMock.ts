@@ -42,9 +42,7 @@ function randomItems(count: number): FeedItem[] {
 }
 
 function itemsByTag(tags: string[], count: number): FeedItem[] {
-  const matching = FEED_MOCK.filter((i) =>
-    i.tags.some((t) => tags.includes(t)),
-  );
+  const matching = FEED_MOCK.filter((i) => i.tags.some((t) => tags.includes(t)));
   return matching.sort(() => Math.random() - 0.5).slice(0, count);
 }
 
@@ -185,16 +183,15 @@ const RULES: MockRule[] = [
       {
         content:
           "I can work with any budget! Here are some beautiful options at different price points. What range are you comfortable with?",
-        suggestions: [...FEED_MOCK]
-          .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
-          .slice(0, 4),
+        suggestions: [...FEED_MOCK].sort((a, b) => (a.price ?? 0) - (b.price ?? 0)).slice(0, 4),
       },
       {
         content:
           "Smart to think about budget. The sweet spot in your taste is usually $40\u2013$75. Here are some picks in that range:",
-        suggestions: FEED_MOCK.filter(
-          (i) => (i.price ?? 0) >= 40 && (i.price ?? 0) <= 75,
-        ).slice(0, 3),
+        suggestions: FEED_MOCK.filter((i) => (i.price ?? 0) >= 40 && (i.price ?? 0) <= 75).slice(
+          0,
+          3
+        ),
       },
     ],
   },
@@ -242,8 +239,7 @@ const RULES: MockRule[] = [
         gif: GIFS.heart,
       },
       {
-        content:
-          "Glad I could help! Your taste is impeccable, by the way. Come back anytime.",
+        content: "Glad I could help! Your taste is impeccable, by the way. Come back anytime.",
         gif: GIFS.clap,
       },
     ],
@@ -281,8 +277,7 @@ const RULES: MockRule[] = [
 
 const FALLBACK: MockResponse[] = [
   {
-    content:
-      "Hmm, tell me more! Are you looking for something for yourself or for someone else?",
+    content: "Hmm, tell me more! Are you looking for something for yourself or for someone else?",
     gif: GIFS.thinking,
   },
   {

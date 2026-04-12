@@ -10,13 +10,7 @@ type Tab = "liked" | "dismissed";
 
 /* ── Profile card — tappable image that undoes the like/dislike ── */
 
-function ProfileCard({
-  item,
-  onUndo,
-}: {
-  item: FeedItem;
-  onUndo: (id: string) => void;
-}) {
+function ProfileCard({ item, onUndo }: { item: FeedItem; onUndo: (id: string) => void }) {
   return (
     <div className="mb-3">
       <button
@@ -35,7 +29,7 @@ function ProfileCard({
 
         {/* Subtle undo hint on hover */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/10">
-          <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-dark-brown opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100">
+          <span className="text-dark-brown rounded-full bg-white/90 px-3 py-1 text-xs font-medium opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100">
             Undo
           </span>
         </div>
@@ -56,13 +50,13 @@ export default function TasteTimeline() {
   return (
     <div>
       {/* ── Tab switcher (Instagram-style) ── */}
-      <div className="flex border-b border-light-brown/20">
+      <div className="border-light-brown/20 flex border-b">
         <button
           type="button"
           onClick={() => setTab("liked")}
-          className={`flex-1 py-3 text-center text-xs uppercase tracking-widest transition-colors ${
+          className={`flex-1 py-3 text-center text-xs tracking-widest uppercase transition-colors ${
             tab === "liked"
-              ? "border-b-2 border-dark-brown font-medium text-dark-brown"
+              ? "border-dark-brown text-dark-brown border-b-2 font-medium"
               : "text-grey/50"
           }`}
         >
@@ -71,9 +65,9 @@ export default function TasteTimeline() {
         <button
           type="button"
           onClick={() => setTab("dismissed")}
-          className={`flex-1 py-3 text-center text-xs uppercase tracking-widest transition-colors ${
+          className={`flex-1 py-3 text-center text-xs tracking-widest uppercase transition-colors ${
             tab === "dismissed"
-              ? "border-b-2 border-dark-brown font-medium text-dark-brown"
+              ? "border-dark-brown text-dark-brown border-b-2 font-medium"
               : "text-grey/50"
           }`}
         >
@@ -84,7 +78,7 @@ export default function TasteTimeline() {
       {/* ── Grid or empty state ── */}
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-sm italic text-grey/50">
+          <p className="text-grey/50 text-sm italic">
             {tab === "liked"
               ? "Heart items in your feed to see them here."
               : "Dismissed items will appear here."}

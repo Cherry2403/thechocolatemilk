@@ -26,13 +26,13 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
       // Re-focus after a tick so the keyboard stays open on mobile
       setTimeout(() => inputRef.current?.focus(), 0);
     },
-    [value, onSend, disabled],
+    [value, onSend, disabled]
   );
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center gap-2 border-t border-light-brown/20 bg-cream px-4 py-3"
+      className="border-light-brown/20 bg-cream flex items-center gap-2 border-t px-4 py-3"
     >
       {/* Text input */}
       <input
@@ -42,14 +42,14 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         onChange={(e) => setValue(e.target.value)}
         placeholder="Ask for yourself or a friend..."
         disabled={disabled}
-        className="flex-1 rounded-full bg-white px-4 py-2.5 text-sm text-text shadow-sm outline-none placeholder:text-grey/50 focus:ring-2 focus:ring-light-brown/30 disabled:opacity-50"
+        className="text-text placeholder:text-grey/50 focus:ring-light-brown/30 flex-1 rounded-full bg-white px-4 py-2.5 text-sm shadow-sm outline-none focus:ring-2 disabled:opacity-50"
       />
 
       {/* Send button */}
       <button
         type="submit"
         disabled={!value.trim() || disabled}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-dark-brown text-white transition-opacity disabled:opacity-30"
+        className="bg-dark-brown flex h-10 w-10 items-center justify-center rounded-full text-white transition-opacity disabled:opacity-30"
       >
         <svg
           width="18"
