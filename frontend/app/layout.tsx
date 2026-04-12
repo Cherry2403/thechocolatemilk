@@ -28,15 +28,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${cormorant.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col bg-cream font-sans text-text">
+    <html lang="en" className={`${inter.variable} ${cormorant.variable} h-full antialiased`}>
+      <body className="bg-cream text-text flex min-h-full flex-col font-sans">
         <Providers>
           {/* ── Brand header — centered, floating, elegant ── */}
-          <header className="flex items-center justify-center pb-1 pt-8 sm:pt-12">
-            <h1 className="font-serif text-[15px]  sm:text-[30px] font-light tracking-[0.25em] uppercase text-dark-brown">
+          <header className="flex items-center justify-center pt-8 pb-1 sm:pt-12">
+            <h1 className="text-dark-brown font-serif text-[15px] font-light tracking-[0.25em] uppercase sm:text-[30px]">
               The Lotus Union
             </h1>
           </header>
