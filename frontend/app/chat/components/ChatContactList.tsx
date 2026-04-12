@@ -1,6 +1,7 @@
 "use client";
 
-import type { ChatContact } from "../page";
+import type { ChatContact } from "@/lib/types/chat";
+import { formatChatTime } from "@/lib/utils/time-ago";
 
 interface ChatContactListProps {
   contacts: ChatContact[];
@@ -11,6 +12,7 @@ interface ChatContactListProps {
 /**
  * Sidebar contact list for the chat page.
  * Each row represents a friend's AI assistant (or the user's own).
+ * Sorted by most recent message (latest conversation on top).
  * Desktop: always-visible left panel. Mobile: full-screen until a contact is selected.
  */
 export default function ChatContactList({
@@ -53,15 +55,24 @@ export default function ChatContactList({
                 {contact.assistantName.charAt(0).toUpperCase()}
               </div>
 
-              {/* Info */}
+              {/* Info + last message */}
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-text">
-                  {contact.assistantName}
-                </p>
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="truncate text-sm font-medium text-text">
+                    {contact.assistantName}
+                  </p>
+                  {contact.lastMessageTime && (
+                    <span className="flex-shrink-0 text-[10px] text-grey/40">
+                      {formatChatTime(contact.lastMessageTime)}
+                    </span>
+                  )}
+                </div>
                 <p className="truncate text-[11px] text-grey/50">
-                  {contact.isOwnAssistant
-                    ? "Your personal assistant"
-                    : `@${contact.username}`}
+                  {contact.lastMessage
+                    ? contact.lastMessage
+                    : contact.isOwnAssistant
+                      ? "Your personal assistant"
+                      : `@${contact.username}`}
                 </p>
               </div>
             </button>

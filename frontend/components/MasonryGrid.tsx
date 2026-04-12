@@ -96,7 +96,7 @@ export default function MasonryGrid({
       {/* Sentinel for infinite scroll */}
       {hasMore && (
         <div ref={sentinelRef} className="flex justify-center py-8">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-dark-brown border-t-transparent" />
         </div>
       )}
     </div>

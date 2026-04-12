@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useTaste } from "@/contexts/TasteContext";
-import MasonryGrid from "@/app/feed/components/MasonryGrid";
+import MasonryGrid from "@/components/MasonryGrid";
 import type { FeedItem } from "@/lib/types/feed";
 
 type Tab = "liked" | "dismissed";

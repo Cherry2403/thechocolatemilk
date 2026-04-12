@@ -1,24 +1,25 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useChat } from "@/hooks/useChat";
+import { shouldShowTimeSeparator } from "@/lib/utils/time-ago";
 import { CONNECTIONS_MOCK } from "@/lib/data/connectionsMock";
 import { CURRENT_USER } from "@/lib/data/userMock";
+import type { ChatContact } from "@/lib/types/chat";
 import ChatBubble from "./components/ChatBubble";
 import ChatInput from "./components/ChatInput";
 import ChatContactList from "./components/ChatContactList";
+import ChatTimeSeparator from "./components/ChatTimeSeparator";
 
-/** A "contact" is any accepted connection + the user's own assistant. */
-export interface ChatContact {
-  id: string;
-  username: string;
-  assistantName: string;
-  isOwnAssistant?: boolean;
-}
+/** @deprecated — Re-exported for backward compatibility. Import from `@/lib/types/chat` instead. */
+export type { ChatContact } from "@/lib/types/chat";
 
 export default function ChatPage() {
-  /* ── Build contact list from accepted connections + self ── */
-  const contacts = useMemo<ChatContact[]>(() => {
+  /* ── Chat hook — manages all per-contact messages ── */
+  const { chatMap, getMessages, getIsTyping, getLastMessage, sendMessage } = useChat();
+
+  /* ── Build base contact list from accepted connections + self ── */
+  const baseContacts = useMemo<ChatContact[]>(() => {
     const own: ChatContact = {
       id: "self",
       username: CURRENT_USER.username,
@@ -37,23 +38,39 @@ export default function ChatPage() {
 
   /* ── Selected conversation ── */
   const [activeContactId, setActiveContactId] = useState<string | null>(null);
-  const activeContact = contacts.find((c) => c.id === activeContactId) ?? null;
+  const activeContact = baseContacts.find((c) => c.id === activeContactId) ?? null;
+  const messages = getMessages(activeContactId);
+  const isTyping = getIsTyping(activeContactId);
 
-  /* ── Per-contact chat state (keyed by contact id) ── */
-  const chatInstances = useRef<Map<string, ReturnType<typeof useChat>>>(
-    new Map(),
+  /* ── Enrich contacts with last message info + sort by latest ── */
+  const contacts = useMemo<ChatContact[]>(() => {
+    const enriched = baseContacts.map((contact) => {
+      const last = getLastMessage(contact.id);
+      if (!last) return contact;
+      return {
+        ...contact,
+        lastMessage: last.content,
+        lastMessageTime: last.timestamp,
+      };
+    });
+
+    // Sort: contacts with messages first (latest on top), then without messages
+    return enriched.sort((a, b) => {
+      if (!a.lastMessageTime && !b.lastMessageTime) return 0;
+      if (!a.lastMessageTime) return 1;
+      if (!b.lastMessageTime) return -1;
+      return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
+    });
+  }, [baseContacts, getLastMessage, chatMap]);
+
+  /* ── Send wrapper (binds to active contact) ── */
+  const handleSend = useCallback(
+    (content: string) => {
+      if (!activeContactId) return;
+      sendMessage(activeContactId, content);
+    },
+    [activeContactId, sendMessage],
   );
-
-  // The active chat instance
-  const currentChat = useChat();
-  const { messages, isTyping, sendMessage } = currentChat;
-
-  // Store chat instance reference
-  useEffect(() => {
-    if (activeContactId) {
-      chatInstances.current.set(activeContactId, currentChat);
-    }
-  }, [activeContactId, currentChat]);
 
   /* ── Auto-scroll ── */
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -152,9 +169,18 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {messages.map((msg) => (
-                <ChatBubble key={msg.id} message={msg} />
-              ))}
+              {messages.map((msg, idx) => {
+                const separator = shouldShowTimeSeparator(
+                  idx > 0 ? messages[idx - 1].timestamp : null,
+                  msg.timestamp,
+                );
+                return (
+                  <div key={msg.id}>
+                    {separator && <ChatTimeSeparator label={separator} />}
+                    <ChatBubble message={msg} />
+                  </div>
+                );
+              })}
 
               {/* Typing indicator */}
               {isTyping && (
@@ -180,7 +206,7 @@ export default function ChatPage() {
             </div>
 
             {/* ── Input bar ── */}
-            <ChatInput onSend={sendMessage} disabled={isTyping} />
+            <ChatInput onSend={handleSend} disabled={isTyping} />
           </>
         )}
       </div>

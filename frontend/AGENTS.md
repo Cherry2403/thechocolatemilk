@@ -72,7 +72,14 @@ Messenger-style AI assistant (Facebook Messenger / Instagram DMs feel).
 - User messages: right-aligned, dark-brown background, white text
 - AI messages: left-aligned, white/glass background, dark text
 - Text input + send button at bottom
-- **No timestamps displayed** in the chat UI (stored internally for ordering)
+- **Timestamps displayed** as Messenger-style separators between message groups (not per-bubble)
+  - Only shown when 5+ minutes gap between messages
+  - Today: `09:31`
+  - This week: `09:39 Thursday`
+  - Older: `03:40 3rd March 2026`
+  - Centered text, subtle styling, between message bubbles
+- **Contact list sorted by latest message** — most recent conversation appears at top; contacts with no messages sink to bottom
+- Each contact row shows: assistant name, last message preview (truncated), formatted time
 - Optional: image upload button (for "is this good for Alex?")
 
 **AI Response Types — the assistant should vary its behavior:**
@@ -308,7 +315,7 @@ interface ChatMessage {
   image?: string;
   gif?: string;                          // GIF URL for AI personality/reactions
   suggestions?: FeedItem[];              // AI can attach item recommendations
-  timestamp: string;                     // stored internally, NOT displayed in chat UI
+  timestamp: string;                     // ISO 8601 — displayed as Messenger-style separators
 }
 ```
 
@@ -320,80 +327,79 @@ Two separate projects (can be monorepo or separate repos):
 
 ```
 frontend/               (Next.js)
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx                # Root layout + bottom nav
-│   │   ├── page.tsx                  # Redirect to /feed
-│   │   │
-│   │   ├── feed/
-│   │   │   ├── page.tsx              # Feed page
-│   │   │   └── components/
-│   │   │       ├── MasonryGrid.tsx   # Responsive masonry layout
-│   │   │       └── FeedCard.tsx      # Image + heart/X overlay
-│   │   │
-│   │   ├── chat/
-│   │   │   ├── page.tsx              # Chat page (contacts + conversation)
-│   │   │   └── components/
-│   │   │       ├── ChatContactList.tsx # Left sidebar / mobile contact screen
-│   │   │       ├── ChatBubble.tsx    # Message bubble
-│   │   │       └── ChatInput.tsx     # Text input + send
-│   │   │
-│   │   ├── connections/
-│   │   │   ├── page.tsx              # Connections page
-│   │   │   └── components/
-│   │   │       ├── PendingRequests.tsx # Incoming/outgoing request section
-│   │   │       ├── FriendList.tsx    # Accepted friends list
-│   │   │       └── UsernameSearch.tsx # Search + add friend
-│   │   │
-│   │   └── profile/
-│   │       ├── page.tsx              # Profile page
-│   │       └── components/
-│   │           ├── ProfileHeader.tsx  # Avatar, username, assistant name, stats
-│   │           └── TasteTimeline.tsx  # Liked/Dismissed tabs
+├── app/
+│   ├── layout.tsx                # Root layout + bottom nav + font loading
+│   ├── page.tsx                  # Redirect to /feed
+│   ├── loading.tsx               # Root loading spinner (all routes)
+│   ├── error.tsx                 # Root error boundary (all routes)
 │   │
-│   ├── lib/
-│   │   ├── api/                      # API client functions
-│   │   │   ├── feed.ts              # getFeed, getFeedItem
-│   │   │   ├── profile.ts          # getProfile, like, dislike
-│   │   │   ├── chat.ts             # sendMessage, getHistory
-│   │   │   └── connections.ts      # getConnections, add, remove
-│   │   ├── data/                     # Mock data (frontend-only phase)
-│   │   │   ├── feedMock.ts          # 24 FeedItem objects with images
-│   │   │   ├── chatMock.ts          # Keyword-matching AI response engine
-│   │   │   ├── connectionsMock.ts   # Mock connections + search results
-│   │   │   └── userMock.ts          # Current user mock profile
-│   │   ├── types/                    # Shared TypeScript interfaces
-│   │   │   ├── feed.ts
-│   │   │   ├── user.ts
-│   │   │   ├── chat.ts
-│   │   │   └── connection.ts
-│   │   └── utils/
-│   │       └── time-ago.ts          # Relative date formatting
+│   ├── feed/
+│   │   ├── page.tsx              # Feed page
+│   │   └── components/
+│   │       └── FeedCard.tsx      # Image + heart/X overlay
 │   │
-│   ├── contexts/                     # React Context providers
-│   │   └── TasteContext.tsx          # Liked/disliked items global state
+│   ├── chat/
+│   │   ├── page.tsx              # Chat page (contacts + conversation)
+│   │   └── components/
+│   │       ├── ChatContactList.tsx # Left sidebar / mobile contact screen
+│   │       ├── ChatBubble.tsx    # Message bubble
+│   │       ├── ChatTimeSeparator.tsx # Messenger-style time separator
+│   │       └── ChatInput.tsx     # Text input + send
 │   │
-│   ├── hooks/                        # Custom React hooks
-│   │   ├── useFeed.ts               # Feed pagination, like/dislike actions
-│   │   ├── useChat.ts               # Chat messages, typing, mock responses
-│   │   └── useColumnCount.ts        # Responsive column count for masonry
+│   ├── connections/
+│   │   ├── page.tsx              # Connections page
+│   │   └── components/
+│   │       ├── PendingRequests.tsx # Incoming/outgoing request section
+│   │       ├── FriendList.tsx    # Accepted friends list
+│   │       └── UsernameSearch.tsx # Search + add friend (debounced)
 │   │
-│   ├── components/                   # Shared components
-│   │   ├── BottomNav.tsx
-│   │   ├── Providers.tsx            # Client boundary for context providers
-│   │   └── Loading.tsx
-│   │
-│   └── styles/
-│       └── globals.css               # Tailwind directives + theme
+│   └── profile/
+│       ├── page.tsx              # Profile page
+│       └── components/
+│           ├── ProfileHeader.tsx  # Avatar, username, assistant name, stats
+│           └── TasteTimeline.tsx  # Liked/Dismissed tabs
+│
+├── lib/
+│   ├── api/                      # API client functions
+│   │   ├── feed.ts              # getFeed, getFeedItem
+│   │   ├── profile.ts          # getProfile, like, dislike
+│   │   ├── chat.ts             # sendMessage, getHistory
+│   │   └── connections.ts      # getConnections, add, remove
+│   ├── data/                     # Mock data (frontend-only phase)
+│   │   ├── feedMock.ts          # 24 FeedItem objects with images
+│   │   ├── chatMock.ts          # Keyword-matching AI response engine
+│   │   ├── connectionsMock.ts   # Mock connections + search results
+│   │   └── userMock.ts          # Current user mock profile
+│   ├── types/                    # Shared TypeScript interfaces
+│   │   ├── feed.ts
+│   │   ├── user.ts
+│   │   ├── chat.ts              # ChatMessage + ChatContact
+│   │   └── connection.ts
+│   └── utils/
+│       └── time-ago.ts          # Time formatting (timeAgo, formatChatTime)
+│
+├── contexts/                     # React Context providers
+│   └── TasteContext.tsx          # Liked/disliked items global state
+│
+├── hooks/                        # Custom React hooks
+│   ├── useFeed.ts               # Feed pagination, like/dislike actions
+│   ├── useChat.ts               # Chat messages, typing, mock responses
+│   └── useColumnCount.ts        # Responsive column count for masonry
+│
+├── components/                   # Shared components
+│   ├── BottomNav.tsx            # Fixed bottom nav (active indicator + dot)
+│   ├── MasonryGrid.tsx          # Responsive masonry layout (shared)
+│   ├── ConfirmDialog.tsx        # Accessible confirm modal (a11y)
+│   ├── Providers.tsx            # Client boundary for context providers
+│   └── Loading.tsx              # Loading spinner (used by app/loading.tsx)
 │
 ├── public/
 │   └── images/
-│       ├── feed/                     # Feed item images (dev only)
-│       └── backgrounds/              # Page backgrounds
+│       ├── feed/                 # Feed item images (dev only)
+│       └── backgrounds/          # Page backgrounds
 │
 ├── next.config.ts
-├── tailwind.config.ts
-├── .env.local                        # NEXT_PUBLIC_API_URL
+├── .env.local                    # NEXT_PUBLIC_API_URL
 └── package.json
 
 
@@ -630,41 +636,44 @@ interface MockResponse {
 ## Implementation Phases
 
 ### Phase 1: Frontend Scaffold + Foundation
-- [ ] **1.1 — Project Setup**
-  - [ ] Next.js 16+ with TypeScript + Tailwind v4
-  - [ ] Directory structure: `app/`, `lib/`, `components/`, `types/`
-  - [ ] Global styles + design tokens (colors, spacing, typography)
-  - [ ] `.env.local` with `NEXT_PUBLIC_API_URL` placeholder
+- [x] **1.1 — Project Setup**
+  - [x] Next.js 16+ with TypeScript + Tailwind v4
+  - [x] Directory structure: `app/`, `lib/`, `components/`, `types/`
+  - [x] Global styles + design tokens (colors, spacing, typography)
+  - [x] Font loading via `next/font/google` (Cormorant Garamond + Inter)
+  - [x] `.env.local` with `NEXT_PUBLIC_API_URL` placeholder
 
-- [ ] **1.2 — Routing + Navigation**
-  - [ ] `/feed`, `/chat`, `/connections`, `/profile` routes
-  - [ ] BottomNav component (4 icons: feed, chat, connections, profile)
-  - [ ] Layout wrapper with nav + padding
-  - [ ] Active route highlighting
+- [x] **1.2 — Routing + Navigation**
+  - [x] `/feed`, `/chat`, `/connections`, `/profile` routes
+  - [x] BottomNav component (4 icons: feed, chat, connections, profile)
+  - [x] Layout wrapper with nav + padding
+  - [x] Active route highlighting (green fill + dot indicator)
+  - [x] Route-level `loading.tsx` + `error.tsx` segments for all 4 routes
 
 ### Phase 2: Frontend — Feed Page
-- [ ] **2.1 — Feed Layout + Masonry Grid**
-  - [ ] MasonryGrid component (responsive: 2 col mobile → 4–5 col desktop)
-  - [ ] Same width per column, variable height based on natural image ratio
-  - [ ] Tailwind-based layout (use CSS columns or masonry lib, no raw CSS unless necessary)
-  - [ ] Mock feed data in `lib/data/feedMock.ts` (20+ items)
+- [x] **2.1 — Feed Layout + Masonry Grid**
+  - [x] MasonryGrid component (responsive: 2 col mobile → 4–5 col desktop)
+  - [x] Same width per column, variable height based on natural image ratio
+  - [x] Tailwind-based layout (use CSS columns or masonry lib, no raw CSS unless necessary)
+  - [x] Mock feed data in `lib/data/feedMock.ts` (20+ items)
 
-- [ ] **2.2 — Feed Card Component**
-  - [ ] FeedCard: image only, no name/brand text on card
-  - [ ] X button (left-center bottom) and heart button (right-center bottom)
-  - [ ] Buttons sized for easy tapping but not oversized
-  - [ ] Tap to trigger action (no backend yet)
+- [x] **2.2 — Feed Card Component**
+  - [x] FeedCard: image only, no name/brand text on card
+  - [x] X button (left-center bottom) and heart button (right-center bottom)
+  - [x] Buttons sized for easy tapping but not oversized
+  - [x] Tap to trigger action (no backend yet)
+  - [x] Race condition guard (`isAnimating` ref) prevents rapid double-click
 
-- [ ] **2.3 — Like/Dislike + Disappear Animation**
-  - [ ] Click heart/X → fade out + scale down
-  - [ ] Remove card from DOM
-  - [ ] Cards below slide up to fill gap (grid auto-layout handles this)
-  - [ ] Store likes/dislikes in `useState` (local, persists in session)
+- [x] **2.3 — Like/Dislike + Disappear Animation**
+  - [x] Click heart/X → fade out + scale down
+  - [x] Remove card from DOM
+  - [x] Cards below slide up to fill gap (grid auto-layout handles this)
+  - [x] Store likes/dislikes in `useState` (local, persists in session)
 
-- [ ] **2.4 — Infinite Scroll**
-  - [ ] IntersectionObserver on sentinel div at bottom
-  - [ ] Append next batch of mock items on trigger
-  - [ ] Loading state + skeleton cards
+- [x] **2.4 — Infinite Scroll**
+  - [x] IntersectionObserver on sentinel div at bottom
+  - [x] Append next batch of mock items on trigger
+  - [x] Loading state + skeleton cards
 
 ### Phase 3: Frontend — Profile Page
 - [x] **3.1 — Profile Header**
@@ -709,12 +718,15 @@ interface MockResponse {
   - [x] First contact: user's own assistant (privateAssistantName)
   - [x] Remaining: each accepted friend's assistant
   - [x] Active contact highlighted
+  - [x] Sorted by most recent message (latest conversation on top)
+  - [x] Each row shows: last message preview + formatted timestamp
 
 - [x] **4.3 — Chat Bubbles + Formatting**
   - [x] Text wrapping, emoji support
   - [x] Links/text/advices in responses (product/advice suggestions)
   - [x] Inline GIF display below text content
   - [x] Product suggestion thumbnails in horizontal scroll
+  - [x] Messenger-style time separators between message groups (5min gap threshold)
 
 - [x] **4.4 — Chat Input + Send**
   - [x] Text input field, send button
@@ -786,6 +798,16 @@ interface MockResponse {
   - [ ] `POST /api/chat` (body: `{ userId, friendId?, message }`) → mock response
   - [ ] `GET /api/chat/history/:userId` → paginated chat history
   - [ ] Save to DB; mock AI logic (rule-based for now)
+
+- [ ] **6.6 — Chat Message Pagination Strategy**
+  - [ ] **Cursor-based pagination** (not offset) — use `created_at` + `id` as cursor
+  - [ ] `GET /api/chat/history?contactId=X&before=<cursor>&limit=30` → older messages
+  - [ ] Default batch size: 30 messages (latest first, reversed on client)
+  - [ ] Frontend: scroll-to-top triggers load-older (IntersectionObserver on sentinel at top)
+  - [ ] Preserve scroll position when prepending older messages
+  - [ ] DB index on `(user_id, created_at DESC)` for efficient range queries
+  - [ ] Response includes `hasMore: boolean` to stop fetching when history exhausted
+  - [ ] Cache loaded messages client-side per contact (avoid re-fetching on tab switch)
 
 ### Phase 7: Integration — Frontend ↔ Backend
 - [ ] **7.1 — API Client Setup**

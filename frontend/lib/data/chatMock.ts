@@ -291,7 +291,7 @@ const FALLBACK: MockResponse[] = [
   },
   {
     content:
-      "Interesting! I\u2019m not sure I follow \u2014 could you rephrase that? I\u2019m best with flowers, fashion, and gift recommendations.",
+      "Interesting! I\u2019m not sure I follow \u2014 could you rephrase that? I\u2019m best with flowers, fashion recommendations.",
   },
   {
     content:
