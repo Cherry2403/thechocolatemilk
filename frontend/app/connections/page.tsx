@@ -1,12 +1,80 @@
+"use client";
+
+import { useState, useCallback, useMemo } from "react";
+import { CONNECTIONS_MOCK } from "@/lib/data/connectionsMock";
+import type { Connection } from "@/lib/types/connection";
+import PendingRequests from "./components/PendingRequests";
+import FriendList from "./components/FriendList";
+import UsernameSearch from "./components/UsernameSearch";
+
+const CURRENT_USER_ID = "user-01";
+
 export default function ConnectionsPage() {
+  const [connections, setConnections] = useState<Connection[]>(CONNECTIONS_MOCK);
+
+  /* ── Derived lists ── */
+  const accepted = useMemo(() => connections.filter((c) => c.status === "accepted"), [connections]);
+
+  const pendingIncoming = useMemo(
+    () => connections.filter((c) => c.status === "pending" && c.initiatedBy !== CURRENT_USER_ID),
+    [connections]
+  );
+
+  const pendingOutgoing = useMemo(
+    () => connections.filter((c) => c.status === "pending" && c.initiatedBy === CURRENT_USER_ID),
+    [connections]
+  );
+
+  /** IDs already connected or pending — filter from search results. */
+  const existingIds = useMemo(
+    () => new Set(connections.map((c) => c.friendId).filter(Boolean) as string[]),
+    [connections]
+  );
+
+  /* ── Actions ── */
+
+  const handleAccept = useCallback((id: string) => {
+    setConnections((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, status: "accepted" as const } : c))
+    );
+  }, []);
+
+  const handleDecline = useCallback((id: string) => {
+    setConnections((prev) => prev.filter((c) => c.id !== id));
+  }, []);
+
+  const handleRemove = useCallback((id: string) => {
+    setConnections((prev) => prev.filter((c) => c.id !== id));
+  }, []);
+
+  const handleAdd = useCallback((userId: string, username: string, assistantName: string) => {
+    const newConn: Connection = {
+      id: `conn-${Date.now()}`,
+      userId: CURRENT_USER_ID,
+      friendId: userId,
+      friendUsername: username,
+      friendAssistantName: assistantName,
+      status: "pending",
+      initiatedBy: CURRENT_USER_ID,
+      createdAt: new Date().toISOString(),
+    };
+    setConnections((prev) => [newConn, ...prev]);
+  }, []);
+
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-6">
-      <h1 className="text-lg font-light uppercase tracking-widest text-text">
-        Connections
-      </h1>
-      <p className="mt-2 text-sm text-text-muted">
-        Friend management coming in Phase 3b.
-      </p>
+    <div>
+      <UsernameSearch onAdd={handleAdd} existingIds={existingIds} />
+
+      {/* Pending incoming requests — shown above friends */}
+      <PendingRequests
+        incoming={pendingIncoming}
+        outgoing={pendingOutgoing}
+        onAccept={handleAccept}
+        onDecline={handleDecline}
+      />
+
+      {/* Accepted friends */}
+      <FriendList connections={accepted} onRemove={handleRemove} />
     </div>
   );
 }

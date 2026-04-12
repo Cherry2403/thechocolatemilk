@@ -149,7 +149,7 @@ export const FEED_MOCK: FeedItem[] = [
     name: "Succulent Garden Box",
     description: "A curated box of five rare succulents in terracotta pots.",
     image: "/images/flower_image_2.jpg",
-    category: "gift",
+    category: "flower",
     brand: "The Sill",
     productLink: "#",
     tags: ["minimal", "modern", "long-lasting"],
@@ -314,5 +314,3 @@ export const FEED_MOCK: FeedItem[] = [
     currency: "USD",
   },
 ];
-
-

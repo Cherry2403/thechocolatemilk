@@ -3,7 +3,7 @@ export interface FeedItem {
   name: string;
   description: string;
   image: string;
-  category: "flower" | "fashion" ;
+  category: "flower" | "fashion";
   brand: string;
   productLink: string;
   tags: string[];
