@@ -11,9 +11,6 @@ import ChatInput from "./components/ChatInput";
 import ChatContactList from "./components/ChatContactList";
 import ChatTimeSeparator from "./components/ChatTimeSeparator";
 
-/** @deprecated — Re-exported for backward compatibility. Import from `@/lib/types/chat` instead. */
-export type { ChatContact } from "@/lib/types/chat";
-
 export default function ChatPage() {
   /* ── Chat hook — manages all per-contact messages ── */
   const { chatMap, getMessages, getIsTyping, getLastMessage, sendMessage } = useChat();

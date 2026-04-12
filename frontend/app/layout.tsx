@@ -29,11 +29,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable} h-full antialiased`}>
-      <body className="bg-cream text-text flex min-h-full flex-col font-sans">
+      <body className="bg-dark-brown text-text flex min-h-full flex-col font-sans">
         <Providers>
           {/* ── Brand header — centered, floating, elegant ── */}
           <header className="flex items-center justify-center pt-8 pb-1 sm:pt-12">
-            <h1 className="text-dark-brown font-serif text-[15px] font-light tracking-[0.25em] uppercase sm:text-[30px]">
+            <h1 className="text-cream font-serif text-[15px] font-light tracking-[0.25em] uppercase sm:text-[30px]">
               The Lotus Union
             </h1>
           </header>

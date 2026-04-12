@@ -55,46 +55,58 @@ export function useChat() {
     []
   );
 
-  /** Send a message within a specific contact's conversation. */
-  const sendMessage = useCallback((contactId: string, content: string) => {
-    /* ── 1. Add user message immediately ── */
-    const userMsg: ChatMessage = {
-      id: `msg-${++idCounter.current}`,
-      userId: "user-01",
-      role: "user",
-      content,
-      timestamp: new Date().toISOString(),
-    };
+  /**
+   * Send a text message within a specific contact's conversation.
+   *
+   * Image upload is intentionally disabled on the user side for now
+   * (security review pending). The backend upload endpoint exists
+   * and can be wired in later.
+   */
+  const sendMessage = useCallback(
+    (contactId: string, content: string) => {
+      if (!content.trim()) return;
 
-    setChatMap((prev) => ({
-      ...prev,
-      [contactId]: [...(prev[contactId] ?? []), userMsg],
-    }));
-    setTypingMap((prev) => ({ ...prev, [contactId]: true }));
-
-    /* ── 2. Simulate AI thinking delay ── */
-    const delay = AI_DELAY_MIN + Math.random() * (AI_DELAY_MAX - AI_DELAY_MIN);
-
-    setTimeout(() => {
-      const mock = getMockResponse(content);
-
-      const assistantMsg: ChatMessage = {
+      /* ── 1. Add user message immediately ── */
+      const userMsg: ChatMessage = {
         id: `msg-${++idCounter.current}`,
-        userId: "assistant",
-        role: "assistant",
-        content: mock.content,
-        gif: mock.gif,
-        suggestions: mock.suggestions,
+        userId: "user-01",
+        role: "user",
+        content,
         timestamp: new Date().toISOString(),
       };
 
       setChatMap((prev) => ({
         ...prev,
-        [contactId]: [...(prev[contactId] ?? []), assistantMsg],
+        [contactId]: [...(prev[contactId] ?? []), userMsg],
       }));
-      setTypingMap((prev) => ({ ...prev, [contactId]: false }));
-    }, delay);
-  }, []);
+      setTypingMap((prev) => ({ ...prev, [contactId]: true }));
+
+      /* ── 2. Simulate AI thinking delay ── */
+      const delay =
+        AI_DELAY_MIN + Math.random() * (AI_DELAY_MAX - AI_DELAY_MIN);
+
+      setTimeout(() => {
+        const mock = getMockResponse(content);
+
+        const assistantMsg: ChatMessage = {
+          id: `msg-${++idCounter.current}`,
+          userId: "assistant",
+          role: "assistant",
+          content: mock.content,
+          gif: mock.gif,
+          suggestions: mock.suggestions,
+          timestamp: new Date().toISOString(),
+        };
+
+        setChatMap((prev) => ({
+          ...prev,
+          [contactId]: [...(prev[contactId] ?? []), assistantMsg],
+        }));
+        setTypingMap((prev) => ({ ...prev, [contactId]: false }));
+      }, delay);
+    },
+    []
+  );
 
   return { chatMap, getMessages, getIsTyping, getLastMessage, sendMessage };
 }

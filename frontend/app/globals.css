@@ -21,7 +21,3 @@
   --color-butter-yellow: #d4a843;
 }
 
-body {
-  background-color: #fdfbd4;
-  color: var(--color-text);
-}

@@ -29,7 +29,9 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
         }`}
       >
         {/* ── Text content ── */}
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+        {message.content && (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+        )}
 
         {/* ── GIF (optional, for AI personality) ── */}
         {message.gif && (

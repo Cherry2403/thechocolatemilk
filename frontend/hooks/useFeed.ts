@@ -7,7 +7,7 @@ import { useTaste } from "@/contexts/TasteContext";
 
 const PAGE_SIZE = 8;
 
-export interface UseFeedReturn {
+interface UseFeedReturn {
   /** Currently visible items (excludes liked/disliked). */
   items: FeedItem[];
   /** Whether more items are available to load. */
