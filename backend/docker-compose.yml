@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: thelotusunion_db
+    environment:
+      POSTGRES_USER: thelotusunion
+      POSTGRES_PASSWORD: thelotusunion
+      POSTGRES_DB: thelotusunion_dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
