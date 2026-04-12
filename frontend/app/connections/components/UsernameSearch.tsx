@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   SEARCH_RESULTS_MOCK,
   type SearchResult,
 } from "@/lib/data/connectionsMock";
+
+/** Debounce delay for search input (ms). */
+const SEARCH_DEBOUNCE_MS = 300;
 
 interface UsernameSearchProps {
   /** Callback when user taps "Connect" on a search result. */
@@ -15,6 +18,7 @@ interface UsernameSearchProps {
 
 /**
  * Live-search bar that filters mock users by username.
+ * Debounced at 300ms to avoid filtering on every keystroke.
  * In production this calls `GET /api/connections/search?username=<query>`.
  */
 export default function UsernameSearch({
@@ -23,23 +27,27 @@ export default function UsernameSearch({
 }: UsernameSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleSearch = useCallback(
     (value: string) => {
       setQuery(value);
+      clearTimeout(debounceRef.current);
 
       if (value.trim().length < 2) {
         setResults([]);
         return;
       }
 
-      // Mock search — filter by username, exclude existing friends/pending
-      const filtered = SEARCH_RESULTS_MOCK.filter(
-        (u) =>
-          u.username.toLowerCase().includes(value.toLowerCase()) &&
-          !existingIds.has(u.id),
-      );
-      setResults(filtered);
+      debounceRef.current = setTimeout(() => {
+        // Mock search — filter by username, exclude existing friends/pending
+        const filtered = SEARCH_RESULTS_MOCK.filter(
+          (u) =>
+            u.username.toLowerCase().includes(value.toLowerCase()) &&
+            !existingIds.has(u.id),
+        );
+        setResults(filtered);
+      }, SEARCH_DEBOUNCE_MS);
     },
     [existingIds],
   );

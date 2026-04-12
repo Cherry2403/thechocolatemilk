@@ -14,7 +14,7 @@ interface ChatBubbleProps {
  * Assistant messages: left-aligned, white/glass bg, dark text.
  *
  * Supports inline GIF display and product suggestion cards.
- * Timestamps are stored but NOT displayed (per spec).
+ * Timestamps are handled by the parent (Messenger-style separators).
  */
 export default function ChatBubble({ message }: ChatBubbleProps) {
   const isUser = message.role === "user";

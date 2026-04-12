@@ -1,7 +1,7 @@
 "use client";
 
 import { useFeed } from "@/hooks/useFeed";
-import MasonryGrid from "./components/MasonryGrid";
+import MasonryGrid from "@/components/MasonryGrid";
 import FeedCard from "./components/FeedCard";
 
 export default function FeedPage() {

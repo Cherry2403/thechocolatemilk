@@ -22,9 +22,12 @@ interface FeedCardProps {
 export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const pendingAction = useRef<"like" | "dislike">("like");
+  const isAnimating = useRef(false);
 
   const handleAction = useCallback(
     (action: "like" | "dislike") => {
+      if (isAnimating.current) return;          // guard against rapid double-click
+      isAnimating.current = true;
       pendingAction.current = action;
       const el = wrapperRef.current;
       if (!el) return;
