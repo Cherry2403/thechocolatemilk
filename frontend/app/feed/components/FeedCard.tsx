@@ -100,14 +100,14 @@ export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
             type="button"
             aria-label="Like"
             onClick={() => handleAction("like")}
-            className="bg-dark-red/60 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-transform duration-150 active:scale-90"
+            className="bg-cream/60 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-transform duration-150 active:scale-90"
           >
             <svg
               width="18"
               height="18"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="var(--color-white)"
+              stroke="var(--color-dark-brown)"
               strokeWidth="1"
               strokeLinecap="round"
               strokeLinejoin="round"

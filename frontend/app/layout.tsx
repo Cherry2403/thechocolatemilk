@@ -18,7 +18,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "THE LOTUS UNION",
+  title: "THE CHOCOLATE MILK",
   description: "Discover your taste in flowers, fashion.",
 };
 
