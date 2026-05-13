@@ -5,15 +5,15 @@ import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 
 /**
- * End-to-end tests for THE_LOTUS_UNION backend.
+ * End-to-end tests for THE_CHOCOLATE_MILK backend.
  *
- * These tests run against a real PostgreSQL database (thelotusunion_dev).
+ * These tests run against a real PostgreSQL database (thechocolatemilk_dev).
  * Seed data must be present — run `npm run seed` before running tests.
  *
  * Tests are grouped by module and executed in a defined order since
  * some depend on state created by earlier tests (e.g. like → taste).
  */
-describe('THE_LOTUS_UNION API (e2e)', () => {
+describe('THE_CHOCOLATE_MILK API (e2e)', () => {
   let app: INestApplication;
   let userId: string;
   let feedItemId: string;
