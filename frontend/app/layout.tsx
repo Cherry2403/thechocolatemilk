@@ -34,7 +34,7 @@ export default function RootLayout({
           {/* ── Brand header — centered, floating, elegant ── */}
           <header className="flex items-center justify-center pt-8 pb-1 sm:pt-12">
             <h1 className="font-serif text-[15px] font-light tracking-[0.25em] uppercase sm:text-[30px]">
-              The Lotus Union
+              The Chocolate Milk
             </h1>
           </header>
 
