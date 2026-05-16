@@ -71,8 +71,8 @@ export default function MasonryGrid({ children, onLoadMore, hasMore = false }: M
   );
 
   return (
-    <div className="px-3 py-4">
-      <div className="flex items-start gap-4">
+    <div className="px-4 py-6 sm:px-6 sm:py-8">
+      <div className="flex items-start gap-4 sm:gap-5">
         {columns.map((col, i) => (
           <div key={i} className="flex flex-1 flex-col">
             {col}

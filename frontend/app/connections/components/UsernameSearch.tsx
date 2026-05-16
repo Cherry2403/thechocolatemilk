@@ -45,7 +45,8 @@ export default function UsernameSearch({ onAdd, existingIds }: UsernameSearchPro
   );
 
   return (
-    <div className="px-4 py-3">
+    <div>
+      <h3 className="mb-4 text-sm">Find Friends</h3>
       {/* Search input */}
       <input
         type="text"
@@ -57,7 +58,7 @@ export default function UsernameSearch({ onAdd, existingIds }: UsernameSearchPro
 
       {/* Results dropdown */}
       {results.length > 0 && (
-        <div className="divide-light-brown/10 mt-2 divide-y overflow-hidden rounded-xl bg-white shadow-sm">
+        <div className="divide-light-brown/10 mt-3 divide-y overflow-hidden rounded-xl bg-white shadow-sm">
           {results.map((user) => (
             <div key={user.id} className="flex items-center gap-3 px-4 py-3">
               {/* Avatar initial */}

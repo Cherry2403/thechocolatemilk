@@ -35,13 +35,13 @@ export default function FriendList({ connections, onRemove }: FriendListProps) {
 
   return (
     <>
-      <div className="px-4">
-        <h3 className="text-grey/60 pt-3 pb-2 text-xs font-medium tracking-widest uppercase">
+      <div>
+        <h3 className="mb-4 text-sm">
           Friends ({connections.length})
         </h3>
-        <div className="divide-light-brown/10 divide-y">
+        <div className="divide-light-brown/10 divide-y space-y-1">
           {connections.map((conn) => (
-            <div key={conn.id} className="flex items-center gap-3 py-3">
+            <div key={conn.id} className="flex items-center gap-3 py-3 first:pt-0">
               {/* Avatar initial */}
               <div className="bg-light-brown/20 text-dark-brown flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-sm font-medium">
                 {conn.friendUsername.charAt(0).toUpperCase()}

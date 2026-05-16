@@ -62,19 +62,28 @@ export default function ConnectionsPage() {
   }, []);
 
   return (
-    <div className="mt-2 px-5 rounded-3xl bg-cream pt-5 pb-6 text-text shadow-[0_-8px_24px_rgba(0,0,0,0.1)]">
-      <UsernameSearch onAdd={handleAdd} existingIds={existingIds} />
+    <div className="flex flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
+      {/* Search section */}
+      <div className="rounded-2xl bg-white/10 p-4 sm:p-6 text-text">
+        <UsernameSearch onAdd={handleAdd} existingIds={existingIds} />
+      </div>
 
       {/* Pending incoming requests — shown above friends */}
-      <PendingRequests
-        incoming={pendingIncoming}
-        outgoing={pendingOutgoing}
-        onAccept={handleAccept}
-        onDecline={handleDecline}
-      />
+      {(pendingIncoming.length > 0 || pendingOutgoing.length > 0) && (
+        <div className="rounded-2xl bg-white/10 p-4 sm:p-6 text-text">
+          <PendingRequests
+            incoming={pendingIncoming}
+            outgoing={pendingOutgoing}
+            onAccept={handleAccept}
+            onDecline={handleDecline}
+          />
+        </div>
+      )}
 
       {/* Accepted friends */}
-      <FriendList connections={accepted} onRemove={handleRemove} />
+      <div className="rounded-2xl bg-white/10 p-4 sm:p-6 text-text">
+        <FriendList connections={accepted} onRemove={handleRemove} />
+      </div>
     </div>
   );
 }

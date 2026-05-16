@@ -17,8 +17,8 @@ export default function ProfileHeader() {
       </div>
 
       {/* Username (primary) + assistant name (secondary) */}
-      <h2 className="text-cream mt-3 text-base font-medium">@{CURRENT_USER.username}</h2>
-      <p className="text-cream/50 text-xs">Assistant: {CURRENT_USER.privateAssistantName}</p>
+      <h2 className="text-cream mt-4 text-lg">@{CURRENT_USER.username}</h2>
+      <p className="text-cream/60 mt-1 text-xs">Assistant: {CURRENT_USER.privateAssistantName}</p>
 
       {/* Stats row */}
       <div className="mt-4 flex gap-8">

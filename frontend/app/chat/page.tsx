@@ -82,11 +82,11 @@ export default function ChatPage() {
   const handleBack = () => setActiveContactId(null);
 
   return (
-    <div className="flex min-h-0 flex-1 gap-3 px-3 sm:px-6">
+    <div className="flex min-h-0 flex-1 gap-1 px-1 py-2 sm:gap-3 sm:px-3">
       {/* ═══ Left: contact list (cream card) ═══ */}
       {/* Desktop: always visible. Mobile: hidden when a chat is active */}
       <div
-        className={`flex w-full min-h-0 flex-shrink-0 flex-col overflow-hidden rounded-2xl bg-cream/20 text-text shadow-sm md:w-72 lg:w-80 ${
+        className={`flex w-full min-h-0 flex-shrink-0 flex-col overflow-hidden rounded-xl bg-cream/20 text-text shadow-sm md:w-72 lg:w-80 ${
           activeContactId ? "hidden md:flex" : "flex"
         }`}
       >
@@ -99,7 +99,7 @@ export default function ChatPage() {
 
       {/* ═══ Right: conversation (cream card) ═══ */}
       {/* Desktop: always visible. Mobile: hidden when no chat selected */}
-      <div className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-cream/20 text-text shadow-sm ${activeContactId ? "flex" : "hidden md:flex"}`}>
+      <div className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl bg-cream/20 text-text shadow-sm ${activeContactId ? "flex" : "hidden md:flex"}`}>
         {!activeContact ? (
           /* ── Empty state (desktop) ── */
           <div className="flex h-full flex-col items-center justify-center text-center">
@@ -130,12 +130,12 @@ export default function ChatPage() {
                 </svg>
               </button>
 
-              <div className="bg-light-brown/60 text-cream flex h-9 w-9 items-center justify-center rounded-full text-xs font-medium">
+              <div className="bg-light-brown/60 text-cream flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium flex-shrink-0">
                 {activeContact.assistantName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="text-cream text-sm font-medium">{activeContact.assistantName}</p>
-                <p className="text-cream text-[11px]">
+                <h2 className="text-cream text-sm">{activeContact.assistantName}</h2>
+                <p className="text-cream/70 text-[11px]">
                   {activeContact.isOwnAssistant
                     ? "Your assistant"
                     : `@${activeContact.username}'s assistant`}
@@ -171,7 +171,7 @@ export default function ChatPage() {
               {/* Typing indicator */}
               {isTyping && (
                 <div className="mb-3 flex justify-start">
-                  <div className="rounded-2xl rounded-bl-md bg-white/80 px-4 py-3 shadow-sm">
+                  <div className="rounded-xl rounded-bl-md bg-white/80 px-4 py-3 shadow-sm">
                     <div className="flex gap-1">
                       <span
                         className="bg-grey/40 h-2 w-2 animate-bounce rounded-full"

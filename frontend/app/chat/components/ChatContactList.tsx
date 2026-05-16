@@ -19,8 +19,8 @@ export default function ChatContactList({ contacts, activeId, onSelect }: ChatCo
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-light-brown/15 border-b px-4 py-3">
-        <h2 className="text-cream text-xs font-medium tracking-widest uppercase">
+      <div className="border-light-brown/15 border-b px-4 py-6 sm:py-8">
+        <h2 className="text-cream text-base sm:text-lg">
           Conversations
         </h2>
       </div>
