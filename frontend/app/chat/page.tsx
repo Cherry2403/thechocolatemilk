@@ -82,7 +82,7 @@ export default function ChatPage() {
   const handleBack = () => setActiveContactId(null);
 
   return (
-    <div className="flex min-h-0 flex-1 gap-1 px-1 py-2 sm:gap-3 sm:px-3">
+    <div className="flex min-h-0 flex-1 gap-3 px-4 sm:gap-4 sm:px-6">
       {/* ═══ Left: contact list (cream card) ═══ */}
       {/* Desktop: always visible. Mobile: hidden when a chat is active */}
       <div
