@@ -98,18 +98,18 @@ export default function ConfirmDialog({
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         aria-describedby="confirm-dialog-desc"
-        className="fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white shadow-lg"
+        className="fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-cream shadow-lg"
       >
         {/* Header */}
         <div className="border-light-brown/10 border-b px-6 py-4">
-          <h2 id="confirm-dialog-title" className="text-text text-base font-medium">
+          <h2 id="confirm-dialog-title" className="text-text text-lg">
             {title}
           </h2>
         </div>
 
         {/* Content */}
         <div className="px-6 py-4">
-          <p id="confirm-dialog-desc" className="text-grey/70 text-sm">
+          <p id="confirm-dialog-desc" className="text-text text-sm">
             {message}
           </p>
         </div>

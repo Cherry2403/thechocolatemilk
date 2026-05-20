@@ -82,11 +82,11 @@ export default function ChatPage() {
   const handleBack = () => setActiveContactId(null);
 
   return (
-    <div className="flex min-h-0 flex-1 gap-3 px-4 sm:gap-4 sm:px-6">
+    <div className="flex min-h-0 overflow-hidden sm:gap-2 sm:p-3 [height:calc(100dvh-5rem)] sm:[height:calc(100dvh-5rem)] lg:h-dvh">
       {/* ═══ Left: contact list (cream card) ═══ */}
       {/* Desktop: always visible. Mobile: hidden when a chat is active */}
       <div
-        className={`flex w-full min-h-0 flex-shrink-0 flex-col overflow-hidden rounded-xl bg-cream/20 text-text shadow-sm md:w-72 lg:w-80 ${
+        className={`flex w-full min-h-0 flex-shrink-0 flex-col overflow-hidden sm:rounded-xl bg-cream/20 text-text shadow-sm md:w-72 lg:w-80 ${
           activeContactId ? "hidden md:flex" : "flex"
         }`}
       >
@@ -99,7 +99,7 @@ export default function ChatPage() {
 
       {/* ═══ Right: conversation (cream card) ═══ */}
       {/* Desktop: always visible. Mobile: hidden when no chat selected */}
-      <div className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl bg-cream/20 text-text shadow-sm ${activeContactId ? "flex" : "hidden md:flex"}`}>
+      <div className={`flex min-h-0 flex-1 flex-col overflow-hidden sm:rounded-xl bg-cream/20 text-text shadow-sm ${activeContactId ? "flex" : "hidden md:flex"}`}>
         {!activeContact ? (
           /* ── Empty state (desktop) ── */
           <div className="flex h-full flex-col items-center justify-center text-center">

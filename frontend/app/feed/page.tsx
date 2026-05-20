@@ -10,7 +10,7 @@ export default function FeedPage() {
 
   return (
     <>
-      <div className="flex items-center justify-center px-4 pt-6 pb-8 sm:px-6 sm:pt-8 sm:pb-10">
+      <div className="flex items-center justify-center px-4 pt-8 sm:px-6 sm:pt-10">
         <Logo size="lg" className="text-cream" />
       </div>
       <MasonryGrid onLoadMore={loadMore} hasMore={hasMore}>

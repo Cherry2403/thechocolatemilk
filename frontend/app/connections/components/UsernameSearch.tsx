@@ -46,7 +46,7 @@ export default function UsernameSearch({ onAdd, existingIds }: UsernameSearchPro
 
   return (
     <div>
-      <h3 className="mb-4 text-sm">Find Friends</h3>
+      <h3 className="mb-4 text-sm text-cream">Find Friends</h3>
       {/* Search input */}
       <input
         type="text"

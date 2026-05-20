@@ -42,7 +42,7 @@ export default function RootLayout({
           <SidebarNav />
 
           {/* Main content — full width on mobile, flex-1 on desktop */}
-          <main className="flex min-h-0 flex-1 flex-col pb-20 lg:pb-0 lg:ml-20">
+          <main className="flex min-h-0 flex-1 flex-col sm:pb-20 lg:pb-0 lg:ml-20">
             {children}
           </main>
 
