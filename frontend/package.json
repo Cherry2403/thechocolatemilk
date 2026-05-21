@@ -11,6 +11,7 @@
     "format:check": "prettier --check \"app/**/*.{ts,tsx,css}\" \"components/**/*.{ts,tsx}\" \"lib/**/*.{ts,tsx}\" \"hooks/**/*.{ts,tsx}\" \"contexts/**/*.{ts,tsx}\""
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.19.11",
     "next": "16.2.2",
     "react": "19.2.4",
     "react-dom": "19.2.4"
