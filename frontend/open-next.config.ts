@@ -14,6 +14,9 @@ const config: OpenNextConfig = {
       // Use the edge converter — handles request/response format for Cloudflare
       converter: "edge",
 
+      // Use native fetch for any proxied external requests
+      proxyExternalRequest: "fetch",
+
       // No incremental caching needed — all pages are statically prerendered
       // (feed, chat, connections, profile are all marked ○ Static in the build output)
       incrementalCache: "dummy",
@@ -26,6 +29,9 @@ const config: OpenNextConfig = {
     },
   },
 
+  // Make node:crypto available to the edge middleware runtime
+  edgeExternals: ["node:crypto"],
+
   middleware: {
     // Run middleware as a separate edge worker for performance
     // Handles redirects (/ → /feed) before the main worker is invoked
@@ -33,9 +39,10 @@ const config: OpenNextConfig = {
     override: {
       wrapper: "cloudflare-edge",
       converter: "edge",
-
-      // Use native fetch for any proxied external requests from middleware
       proxyExternalRequest: "fetch",
+      incrementalCache: "dummy",
+      tagCache: "dummy",
+      queue: "dummy",
     },
   },
 };
