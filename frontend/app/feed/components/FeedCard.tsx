@@ -60,7 +60,7 @@ export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
   );
 
   return (
-    <div ref={wrapperRef} className="mb-3">
+    <div ref={wrapperRef} className="mb-3 break-inside-avoid">
       <div className="group bg-surface relative overflow-hidden rounded-[5px] shadow-sm">
         {/* Image — natural aspect ratio, fills column width */}
         <Image
@@ -79,14 +79,15 @@ export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
             type="button"
             aria-label="Dismiss"
             onClick={() => handleAction("dislike")}
-            className="bg-dark-brown/70 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-transform duration-150 active:scale-90"
+            className="flex h-10 w-10 items-center justify-center transition-transform duration-150 active:scale-90"
           >
             <svg
-              width="18"
-              height="18"
+              width="23"
+              height="23"
               viewBox="0 0 24 24"
-              stroke="var(--color-white)"
-              strokeWidth="1"
+              stroke="var(--color-dark-brown)"
+              fill="var(--color-cream)"
+              strokeWidth="4"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -100,15 +101,15 @@ export default function FeedCard({ item, onLike, onDislike }: FeedCardProps) {
             type="button"
             aria-label="Like"
             onClick={() => handleAction("like")}
-            className="bg-dark-red/60 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-transform duration-150 active:scale-90"
+            className="flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-150 active:scale-90"
           >
             <svg
               width="18"
               height="18"
               viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--color-white)"
-              strokeWidth="1"
+              fill="var(--color-cream)"
+              stroke="var(--color-dark-brown)"
+              strokeWidth="5"
               strokeLinecap="round"
               strokeLinejoin="round"
             >

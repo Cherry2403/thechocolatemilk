@@ -1,4 +1,4 @@
-export type ConnectionStatus = "pending" | "accepted";
+type ConnectionStatus = "pending" | "accepted";
 
 export interface Connection {
   id: string;
