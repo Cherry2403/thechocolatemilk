@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import BottomNav from "@/components/BottomNav";
 import SidebarNav from "@/components/SidebarNav";
 import Providers from "@/components/Providers";
+import FeedbackWidget from "@/components/FeedbackWidget";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -48,6 +49,9 @@ export default function RootLayout({
 
           {/* Bottom nav — mobile only */}
           <BottomNav />
+
+          {/* Floating feedback widget — visible across all pages */}
+          <FeedbackWidget />
         </Providers>
       </body>
     </html>
