@@ -5,12 +5,11 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Floating feedback widget — like/dislike + optional written feedback.
  *
- * Delivery: POSTs to Formspree. Set NEXT_PUBLIC_FORMSPREE_ID in .env.local
- * to your form ID (e.g. "xyzabcde"). If unset, submissions log to console
- * so the UI still works locally without configuration.
+ * Delivery: POSTs to Formspree. The form ID is public (visible in any
+ * network request from the browser anyway), so it's hardcoded here.
  */
 
-const FORMSPREE_ID = process.env.NEXT_PUBLIC_FORMSPREE_ID;
+const FORMSPREE_ID = "xnjyyblg";
 
 type Vote = "like" | "dislike";
 type Status = "idle" | "submitting" | "success" | "error";
@@ -68,16 +67,12 @@ export default function FeedbackWidget() {
     };
 
     try {
-      if (FORMSPREE_ID) {
-        const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error(`Formspree ${res.status}`);
-      } else {
-        console.info("[FeedbackWidget] (no NEXT_PUBLIC_FORMSPREE_ID set) Would submit:", payload);
-      }
+      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`Formspree ${res.status}`);
       setStatus("success");
     } catch (err) {
       console.error("[FeedbackWidget] submit failed", err);
