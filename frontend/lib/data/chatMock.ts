@@ -3,31 +3,25 @@ import { FEED_MOCK } from "./feedMock";
 
 /* ══════════════════════════════════════════════════════════════════
    Mock Chat Response Engine
-   ──────────────────────────────────────────────────────────────────
-   Keyword-matching rules that power the AI assistant during the
-   frontend-only phase. Each rule has trigger words and an array of
-   possible responses (picked randomly). Rules that need dynamic
-   product suggestions use a factory function so items are shuffled
-   fresh on every call.
-
-   Swap this for the OpenAI API call via backend in Phase 9.
+   Keyword-matching rules powering the AI assistant.
+   Two modes: "shop" (includes product suggestions) and "advice" (text only).
+   Friend-aware: responses differ based on who you're talking to.
+   Swap for OpenAI API in Phase 9.
    ══════════════════════════════════════════════════════════════════ */
 
-/* ── Types ── */
+export type ChatMode = "shop" | "advice";
 
-interface MockResponse {
+export interface MockResponse {
   content: string;
   gif?: string;
   suggestions?: FeedItem[];
 }
 
-type ResponseSource = MockResponse[] | (() => MockResponse[]);
+type ResponseFactory = (mode: ChatMode) => MockResponse[];
 
 interface MockRule {
-  /** Any trigger found in the lowercased user message fires this rule. */
   triggers: string[];
-  /** Static array or factory function that returns fresh responses. */
-  responses: ResponseSource;
+  responses: ResponseFactory;
 }
 
 /* ── Helpers ── */
@@ -37,8 +31,7 @@ function pickRandom<T>(arr: T[]): T {
 }
 
 function randomItems(count: number): FeedItem[] {
-  const shuffled = [...FEED_MOCK].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
+  return [...FEED_MOCK].sort(() => Math.random() - 0.5).slice(0, count);
 }
 
 function itemsByTag(tags: string[], count: number): FeedItem[] {
@@ -46,11 +39,7 @@ function itemsByTag(tags: string[], count: number): FeedItem[] {
   return matching.sort(() => Math.random() - 0.5).slice(0, count);
 }
 
-function resolveResponses(source: ResponseSource): MockResponse[] {
-  return typeof source === "function" ? source() : source;
-}
-
-/* ── GIF URLs (GIPHY CDN — lightweight embed links) ── */
+/* ── GIFs ── */
 
 const GIFS = {
   wave: "https://media.giphy.com/media/ASd0Ukj0y3qMM/giphy.gif",
@@ -67,244 +56,347 @@ const GIFS = {
   dance: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
 };
 
-/* ── Rule definitions ── */
+/* ══════════════════════════════════════════════════════════════════
+   Friend taste profiles (mock, will come from real taste API later)
+   ══════════════════════════════════════════════════════════════════ */
 
-const RULES: MockRule[] = [
-  /* ── Greetings ── */
+interface FriendProfile {
+  displayName: string;
+  username: string;
+  likes: string;
+  dislikes: string;
+  style: string;
+  tags: string[];
+}
+
+const FRIEND_PROFILES: Record<string, FriendProfile> = {
+  "user-02": {
+    displayName: "Sarah",
+    username: "sarah.bloom",
+    likes: "peonies, soft pastels, cottagecore vibes, anything that looks like a film still",
+    dislikes: "roses (too basic for her), anything too tropical or loud",
+    style: "romantic cottagecore",
+    tags: ["romantic", "soft", "pastel", "elegant"],
+  },
+  "user-03": {
+    displayName: "Alex",
+    username: "alex.k",
+    likes: "sculptural arrangements, dried flowers, earthy tones, statement pieces",
+    dislikes: "anything too sweet or girly, baby pink, glitter",
+    style: "modern minimalist",
+    tags: ["minimal", "modern", "sculptural", "earthy"],
+  },
+  "user-04": {
+    displayName: "Maya",
+    username: "maya.rose",
+    likes: "bold colors, tropical flowers, maximalist styling, bright yellows and oranges",
+    dislikes: "white flowers (finds them boring), minimalism",
+    style: "maximalist tropical",
+    tags: ["bold", "exotic", "tropical", "vibrant"],
+  },
+  "user-05": {
+    displayName: "Jordan",
+    username: "j.winter",
+    likes: "clean lines, neutral tones, architectural arrangements, eucalyptus",
+    dislikes: "fussy arrangements, too many colors mixed together",
+    style: "clean architectural",
+    tags: ["minimal", "modern", "elegant", "classic"],
+  },
+};
+
+function getFriendProfile(contactId: string): FriendProfile | null {
+  return FRIEND_PROFILES[contactId] ?? null;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Self rules (talking to your own assistant)
+   ══════════════════════════════════════════════════════════════════ */
+
+const SELF_RULES: MockRule[] = [
   {
-    triggers: ["hi", "hello", "hey", "sup", "yo", "good morning", "good evening"],
-    responses: [
+    triggers: ["hi", "hello", "hey", "sup", "yo", "heyy", "good morning", "good evening"],
+    responses: (mode) => [
       {
-        content:
-          "Hey there! I\u2019m your personal style curator. What can I help you find today \u2014 flowers, fashion, or the perfect gift?",
+        content: mode === "shop"
+          ? "hey!! ok i'm ready to find you something cute, what are we looking for today?"
+          : "heyyy what's on your mind? flowers, fashion, gift ideas, i got you",
         gif: GIFS.wave,
       },
+      { content: "omg hi!! tell me what you need and i'll figure it out" },
       {
-        content:
-          "Welcome back! Ready to discover something beautiful? Tell me what you\u2019re looking for.",
-      },
-      {
-        content:
-          "Hi! I\u2019ve been learning your taste. Want me to suggest something, or do you have a specific occasion in mind?",
+        content: mode === "shop"
+          ? "hey! based on your taste i already have some ideas... want me to just show you?"
+          : "hey! i've been paying attention to your likes btw. ask me anything",
         gif: GIFS.sparkle,
       },
     ],
   },
 
-  /* ── Flower / bouquet requests ── */
   {
-    triggers: ["flower", "bouquet", "arrangement", "roses", "peony", "tulip", "lily", "orchid"],
-    responses: () => [
+    triggers: ["flower", "bouquet", "arrangement", "peony", "peonies", "tulip", "lily", "orchid", "rose"],
+    responses: (mode) => [
       {
-        content:
-          "Based on your taste, you gravitate toward elegant and romantic arrangements. Here are a few I think you\u2019ll love \u2014 how many are you thinking of getting?",
-        suggestions: randomItems(3),
-      },
-      {
-        content:
-          "Gorgeous choice! I pulled some options that match your style. Would you like a single statement piece or a few smaller arrangements?",
-        suggestions: randomItems(4),
+        content: mode === "shop"
+          ? "ok so based on your likes you're giving romantic but make it elegant. here's what i think you'd love:"
+          : "ok so your flower vibe is definitely soft and romantic. think peonies, ranunculus, garden roses. you tend to heart the pastel-heavy arrangements and skip anything too structured or tropical. basically you want it to look like it was just picked from a cottage garden",
+        suggestions: mode === "shop" ? randomItems(3) : undefined,
         gif: GIFS.flowers,
       },
       {
-        content:
-          "Flowers! My favorite topic. You seem to love soft pastels and natural textures. Here are my top picks for you:",
-        suggestions: randomItems(3),
+        content: mode === "shop"
+          ? "you've been hearting a lot of soft pastel stuff so i pulled these for you:"
+          : "ngl your taste in flowers is really consistent. you always go for the dreamy, soft arrangements. roses are a yes but only the garden variety not the stiff supermarket ones. you'd probably hate anything too tropical or architectural",
+        suggestions: mode === "shop" ? randomItems(4) : undefined,
       },
     ],
   },
 
-  /* ── Fashion requests ── */
   {
     triggers: ["fashion", "outfit", "clothes", "dress", "style", "wear"],
-    responses: () => [
+    responses: (mode) => [
       {
-        content:
-          "Your fashion taste leans minimal and elegant \u2014 clean lines, muted tones. Let me pull some pieces you might like:",
-        suggestions: randomItems(3),
-      },
-      {
-        content:
-          "I love your style sense! Based on what you\u2019ve hearted, here are some fashion finds that feel very you:",
-        suggestions: randomItems(3),
+        content: mode === "shop"
+          ? "your fashion taste is giving quiet luxury, clean lines, muted tones, nothing too loud. here:"
+          : "ok so your fashion taste is very 'i woke up like this but make it expensive' energy. you lean toward minimal, neutral stuff with good fabric. you don't really heart anything with big logos or loud prints",
+        suggestions: mode === "shop" ? randomItems(3) : undefined,
         gif: GIFS.sparkle,
       },
+      {
+        content: mode === "shop"
+          ? "based on what you've hearted, here are some pieces that feel very you:"
+          : "honestly your style is super cohesive, soft neutrals, elevated basics, nothing too trendy. you'd probably love something that looks expensive but isn't trying too hard",
+        suggestions: mode === "shop" ? randomItems(3) : undefined,
+      },
     ],
   },
 
-  /* ── Friend-based queries ── */
   {
-    triggers: ["sarah", "alex", "maya", "jordan", "friend", "birthday", "gift for"],
+    triggers: ["my style", "my taste", "what do i like", "profile", "preference", "what am i into"],
     responses: () => [
       {
-        content:
-          "Let me check their taste profile\u2026 They love minimal, modern arrangements with lots of green and white tones. I\u2019d suggest an Orchid Elegance or a Eucalyptus Wreath \u2014 both very them.",
-        suggestions: itemsByTag(["minimal", "modern", "elegant"], 3),
+        content: "ok so here's your vibe based on everything you've hearted: romantic but not over the top, soft color palettes (pinks, whites, sage greens), minimal styling, and anything that feels like a slow sunday morning. you skip bold/tropical stuff almost every time",
       },
       {
-        content:
-          "Great idea! Based on their likes, they lean toward bold and sculptural pieces. How about a Protea Statement or a Tropical Heliconia? Want me to narrow it down by budget?",
-        suggestions: itemsByTag(["bold", "sculptural", "exotic"], 3),
-      },
-      {
-        content:
-          "Thinking of someone special? I love that. Based on what I know about their style, here are some picks that would make their day:",
-        suggestions: randomItems(3),
-        gif: GIFS.heart,
-      },
-    ],
-  },
-
-  /* ── Rating / opinion requests ── */
-  {
-    triggers: ["rate", "think", "opinion", "good", "worth", "recommend"],
-    responses: [
-      {
-        content:
-          "Honestly? That\u2019s a solid 9/10 for your style. It matches your love for elegant, romantic pieces. The color palette is right in your wheelhouse too.",
-        gif: GIFS.thumbsUp,
-      },
-      {
-        content:
-          "I\u2019d give it a strong recommendation! It aligns with your top styles \u2014 elegant and minimal. Plus, the color tones you usually heart are all over this one.",
-      },
-      {
-        content:
-          "Based on your taste profile, this is very you. If you\u2019re on the fence, I\u2019d say go for it. You tend to love pieces like this.",
-        gif: GIFS.chef,
-      },
-    ],
-  },
-
-  /* ── Price / budget ── */
-  {
-    triggers: ["price", "budget", "cheap", "expensive", "affordable", "under", "cost"],
-    responses: () => [
-      {
-        content:
-          "I can work with any budget! Here are some beautiful options at different price points. What range are you comfortable with?",
-        suggestions: [...FEED_MOCK].sort((a, b) => (a.price ?? 0) - (b.price ?? 0)).slice(0, 4),
-      },
-      {
-        content:
-          "Smart to think about budget. The sweet spot in your taste is usually $40\u2013$75. Here are some picks in that range:",
-        suggestions: FEED_MOCK.filter((i) => (i.price ?? 0) >= 40 && (i.price ?? 0) <= 75).slice(
-          0,
-          3
-        ),
-      },
-    ],
-  },
-
-  /* ── Quantity / how many ── */
-  {
-    triggers: ["how many", "quantity", "one", "several", "multiple", "just one"],
-    responses: [
-      {
-        content:
-          "For a dinner party, I\u2019d say 2\u20133 smaller arrangements spread across the table create a lovely atmosphere. Or one statement centerpiece if you want dramatic impact!",
-      },
-      {
-        content:
-          "It depends on the occasion! For a gift, one beautiful piece is perfect. For your home, a few scattered arrangements make every room feel alive.",
-        gif: GIFS.sparkle,
-      },
-    ],
-  },
-
-  /* ── Dinner party / occasion ── */
-  {
-    triggers: ["dinner", "party", "event", "wedding", "date", "occasion"],
-    responses: () => [
-      {
-        content:
-          "A dinner party! I\u2019d go with something elegant but not overpowering \u2014 you want your guests to see each other, not just the flowers. Here are my picks:",
-        suggestions: itemsByTag(["elegant", "classic", "minimal"], 3),
-      },
-      {
-        content:
-          "For events, I always recommend arrangements that complement the setting. What\u2019s the vibe \u2014 romantic, modern, rustic?",
-        gif: GIFS.thinking,
-      },
-    ],
-  },
-
-  /* ── Thank you / gratitude ── */
-  {
-    triggers: ["thank", "thanks", "appreciate", "helpful", "perfect", "love it"],
-    responses: [
-      {
-        content:
-          "You\u2019re welcome! Happy to help anytime. Let me know when you need more inspiration.",
-        gif: GIFS.heart,
-      },
-      {
-        content: "Glad I could help! Your taste is impeccable, by the way. Come back anytime.",
-        gif: GIFS.clap,
-      },
-    ],
-  },
-
-  /* ── Style / taste self-inquiry ── */
-  {
-    triggers: ["my style", "my taste", "what do i like", "profile", "preference"],
-    responses: [
-      {
-        content:
-          "From what I\u2019ve seen, you love elegant, romantic pieces with soft color palettes \u2014 pinks, whites, and greens dominate your likes. You tend to favor spring-inspired, minimal designs over bold or tropical ones.",
-      },
-      {
-        content:
-          "Your taste profile is shaping up beautifully! You lean toward romantic and elegant styles with natural textures. Brands like Bloom & Wild and Terrain seem to resonate with you the most.",
+        content: "your taste is honestly really clear. you love elegant and romantic, soft textures, spring colors. you're not into maximalism or anything too loud. basically you want everything to feel like a french countryside aesthetic",
         gif: GIFS.wink,
       },
     ],
   },
 
-  /* ── Help / what can you do ── */
   {
-    triggers: ["help", "what can you", "how does", "explain"],
-    responses: [
+    triggers: ["rate", "think", "opinion", "good", "worth", "what do you think"],
+    responses: () => [
       {
-        content:
-          "I can help you with:\n\u2022 Finding flowers or fashion that match your taste\n\u2022 Gift recommendations for your connected friends\n\u2022 Rating items you\u2019re considering\n\u2022 Summarizing your style profile\n\nJust ask naturally \u2014 I\u2019ll figure out the rest!",
+        content: "ok honestly? that's very you. it hits your usual style marks, the soft tones, the elegant vibe. i'd say go for it",
+        gif: GIFS.thumbsUp,
+      },
+      {
+        content: "yeah that's a solid pick for your taste. it's giving exactly the energy you tend to heart. i'd rate it like a 9/10 for you specifically",
+      },
+      {
+        content: "not gonna lie it aligns really well with your profile. you tend to love stuff like this so i think you'd be happy with it",
+        gif: GIFS.chef,
+      },
+    ],
+  },
+
+  {
+    triggers: ["price", "budget", "cheap", "expensive", "affordable", "under", "cost"],
+    responses: (mode) => [
+      {
+        content: mode === "shop"
+          ? "ok let me pull some options at different price points for you:"
+          : "so based on your history your sweet spot is usually $40-75. you tend to skip the super cheap stuff (it shows) but you're not going all out either. want me to find something in that range?",
+        suggestions: mode === "shop"
+          ? [...FEED_MOCK].sort((a, b) => (a.price ?? 0) - (b.price ?? 0)).slice(0, 4)
+          : undefined,
+      },
+    ],
+  },
+
+  {
+    triggers: ["dinner", "party", "event", "wedding", "date", "occasion"],
+    responses: (mode) => [
+      {
+        content: mode === "shop"
+          ? "for an event you want something elegant but not overwhelming, here are my picks:"
+          : "ok for a dinner party i'd say go elegant but restrained, you don't want the flowers competing with the conversation. something soft and low-profile. single flower type arrangements are usually the move",
+        suggestions: mode === "shop" ? itemsByTag(["elegant", "classic", "minimal"], 3) : undefined,
+      },
+      {
+        content: mode === "shop"
+          ? "what's the vibe? romantic, modern, rustic? here are some starter options:"
+          : "depends on the vibe honestly. romantic dinner: garden roses or ranunculus. more modern event: something sculptural and minimal. tell me more and i can get specific",
+        gif: GIFS.thinking,
+      },
+    ],
+  },
+
+  {
+    triggers: ["how many", "quantity", "one", "several", "multiple", "just one"],
+    responses: () => [
+      {
+        content: "for a dinner table i'd say 2-3 smaller arrangements spread out > one giant centerpiece. unless you're going for drama, in which case one huge thing can actually be really cool",
+      },
+      {
+        content: "for a gift one beautiful piece is always the move. for your home, a few scattered around different rooms makes everything feel intentional",
+        gif: GIFS.sparkle,
+      },
+    ],
+  },
+
+  {
+    triggers: ["thank", "thanks", "appreciate", "helpful", "perfect", "love it", "that's great"],
+    responses: () => [
+      { content: "omg of course!! come back anytime, this is literally what i'm here for", gif: GIFS.heart },
+      { content: "yay!! glad that helped. your taste is really good btw, makes my job easy lol", gif: GIFS.clap },
+    ],
+  },
+
+  {
+    triggers: ["help", "what can you", "how does", "explain", "what do you do"],
+    responses: () => [
+      {
+        content: "ok so here's what i can do:\n- find flowers or fashion that match your vibe\n- give you gift ideas for your friends based on their taste\n- tell you if something is a yes or no for your style\n- break down your taste profile\n\njust ask naturally, i'll figure out what you mean",
       },
     ],
   },
 ];
 
-/* ── Fallback responses ── */
+/* ══════════════════════════════════════════════════════════════════
+   Friend rules (talking to a friend's assistant)
+   ══════════════════════════════════════════════════════════════════ */
 
-const FALLBACK: MockResponse[] = [
+const FRIEND_RULES: MockRule[] = [
   {
-    content: "Hmm, tell me more! Are you looking for something for yourself or for someone else?",
-    gif: GIFS.thinking,
+    triggers: ["hi", "hello", "hey", "sup", "yo", "heyy"],
+    responses: (mode) => [
+      {
+        content: mode === "shop"
+          ? "hey! i know their taste pretty well at this point, tell me what you're shopping for and i'll point you in the right direction"
+          : "hey! i can tell you a lot about what they like and don't like, just ask",
+        gif: GIFS.wave,
+      },
+    ],
   },
+
   {
-    content:
-      "I\u2019d love to help with that. Can you give me a bit more context \u2014 occasion, budget, or style?",
+    triggers: ["flower", "bouquet", "arrangement", "peony", "peonies", "tulip", "lily", "orchid", "rose", "what do they like", "what flowers"],
+    responses: () => [{ content: "FRIEND_FLOWER_ADVICE" }],
   },
+
   {
-    content:
-      "Interesting! I\u2019m not sure I follow \u2014 could you rephrase that? I\u2019m best with flowers, fashion recommendations.",
+    triggers: ["gift", "birthday", "present", "what to get", "idea", "surprise"],
+    responses: () => [{ content: "FRIEND_GIFT_ADVICE" }],
   },
+
   {
-    content:
-      "I\u2019m still learning! Try asking me things like \u201CWhat flowers for a dinner party?\u201D or \u201CWhat would Sarah like for her birthday?\u201D",
-    gif: GIFS.sparkle,
+    triggers: ["style", "fashion", "taste", "vibe", "aesthetic", "what do they wear"],
+    responses: () => [{ content: "FRIEND_STYLE_ADVICE" }],
+  },
+
+  {
+    triggers: ["don't like", "hate", "avoid", "not into", "dislike"],
+    responses: () => [{ content: "FRIEND_DISLIKES" }],
   },
 ];
 
-/* ── Main export ── */
+/* ── Resolve friend placeholder responses ── */
 
-export function getMockResponse(userMessage: string): MockResponse {
-  const lower = userMessage.toLowerCase();
-
-  for (const rule of RULES) {
-    if (rule.triggers.some((t) => lower.includes(t))) {
-      return pickRandom(resolveResponses(rule.responses));
-    }
+function resolveFriendResponse(
+  raw: MockResponse,
+  friend: FriendProfile,
+  mode: ChatMode
+): MockResponse {
+  if (raw.content === "FRIEND_FLOWER_ADVICE") {
+    return {
+      content: mode === "shop"
+        ? `ok so ${friend.displayName} is really into ${friend.likes.split(",")[0]} and that whole ${friend.style} aesthetic. here are some things i think they'd actually love:`
+        : `ok so for flowers: ${friend.displayName} is really into ${friend.likes}. their whole thing is ${friend.style}. i'd avoid ${friend.dislikes.split(",")[0].trim()} if i were you, that's not really their vibe`,
+      suggestions: mode === "shop" ? itemsByTag(friend.tags, 3) : undefined,
+    };
   }
 
-  return pickRandom(FALLBACK);
+  if (raw.content === "FRIEND_GIFT_ADVICE") {
+    return {
+      content: mode === "shop"
+        ? `for ${friend.displayName} you want to lean into that ${friend.style} aesthetic they love. they're really into ${friend.likes.split(",")[0]} and ${friend.likes.split(",")[1]?.trim() ?? "clean simple things"}. here are some solid picks:`
+        : `ok gift advice for ${friend.displayName}: they're super into ${friend.likes}. their whole vibe is ${friend.style} so anything in that direction is a safe bet. i'd stay away from ${friend.dislikes} though, that would probably miss for them`,
+      suggestions: mode === "shop" ? itemsByTag(friend.tags, 4) : undefined,
+      gif: GIFS.heart,
+    };
+  }
+
+  if (raw.content === "FRIEND_STYLE_ADVICE") {
+    return {
+      content: mode === "shop"
+        ? `${friend.displayName}'s taste is very ${friend.style}. they love ${friend.likes}. here are pieces that match their aesthetic:`
+        : `${friend.displayName}'s whole thing is ${friend.style}. they love ${friend.likes}. honestly their taste is really consistent so once you get the vibe it's easy to shop for them`,
+      suggestions: mode === "shop" ? itemsByTag(friend.tags, 3) : undefined,
+    };
+  }
+
+  if (raw.content === "FRIEND_DISLIKES") {
+    return {
+      content: `yeah ${friend.displayName} is pretty clear about what they don't like: ${friend.dislikes}. so i'd just avoid those and you're good`,
+    };
+  }
+
+  return raw;
+}
+
+/* ── Fallbacks ── */
+
+const SELF_FALLBACK: MockResponse[] = [
+  { content: "hmm tell me more, are you looking for something for yourself or a gift?", gif: GIFS.thinking },
+  { content: "i'd love to help but can you give me a bit more context? occasion, budget, or style would help" },
+  { content: "not sure i follow lol, try asking something like 'what flowers for a dinner party' or 'is this my style'" },
+];
+
+function FRIEND_FALLBACK(friend: FriendProfile): MockResponse[] {
+  return [
+    { content: `not totally sure what you mean but i can tell you a lot about ${friend.displayName}'s taste if you just ask!` },
+    { content: `hmm, could you be more specific? like are you trying to find a gift for ${friend.displayName} or just want to know their vibe?`, gif: GIFS.thinking },
+  ];
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Main export
+   ══════════════════════════════════════════════════════════════════ */
+
+export function getMockResponse(
+  userMessage: string,
+  contactId: string,
+  mode: ChatMode = "shop"
+): MockResponse {
+  const lower = userMessage.toLowerCase();
+  const isSelf = contactId === "self";
+  const friend = isSelf ? null : getFriendProfile(contactId);
+
+  if (isSelf) {
+    for (const rule of SELF_RULES) {
+      if (rule.triggers.some((t) => lower.includes(t))) {
+        return pickRandom(rule.responses(mode));
+      }
+    }
+    return pickRandom(SELF_FALLBACK);
+  }
+
+  if (friend) {
+    for (const rule of FRIEND_RULES) {
+      if (rule.triggers.some((t) => lower.includes(t))) {
+        const raw = pickRandom(rule.responses(mode));
+        return resolveFriendResponse(raw, friend, mode);
+      }
+    }
+    return pickRandom(FRIEND_FALLBACK(friend));
+  }
+
+  // Unknown friend (no profile yet)
+  return {
+    content: mode === "shop"
+      ? "i don't have much data on their taste yet but here are some universally loved picks:"
+      : "i don't have enough data on their taste yet. once they've used the app more i'll be able to tell you a lot more about what they like",
+    suggestions: mode === "shop" ? randomItems(3) : undefined,
+  };
 }

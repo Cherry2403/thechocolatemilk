@@ -6,6 +6,7 @@ import { shouldShowTimeSeparator } from "@/lib/utils/time-ago";
 import { CONNECTIONS_MOCK } from "@/lib/data/connectionsMock";
 import { CURRENT_USER } from "@/lib/data/userMock";
 import type { ChatContact } from "@/lib/types/chat";
+import type { ChatMode } from "@/lib/data/chatMock";
 import ChatBubble from "./components/ChatBubble";
 import ChatInput from "./components/ChatInput";
 import ChatContactList from "./components/ChatContactList";
@@ -32,6 +33,9 @@ export default function ChatPage() {
     );
     return [own, ...friends];
   }, []);
+
+  /* ── Mode: shop shows product suggestions, advice is text only ── */
+  const [mode, setMode] = useState<ChatMode>("shop");
 
   /* ── Selected conversation ── */
   const [activeContactId, setActiveContactId] = useState<string | null>(null);
@@ -64,9 +68,9 @@ export default function ChatPage() {
   const handleSend = useCallback(
     (content: string) => {
       if (!activeContactId) return;
-      sendMessage(activeContactId, content);
+      sendMessage(activeContactId, content, mode);
     },
-    [activeContactId, sendMessage]
+    [activeContactId, sendMessage, mode]
   );
 
   /* ── Auto-scroll ── */
@@ -133,13 +137,39 @@ export default function ChatPage() {
               <div className="bg-light-brown/60 text-cream flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium flex-shrink-0">
                 {activeContact.assistantName.charAt(0).toUpperCase()}
               </div>
-              <div>
+              <div className="flex-1">
                 <h2 className="text-cream text-sm">{activeContact.assistantName}</h2>
                 <p className="text-cream/70 text-[11px]">
                   {activeContact.isOwnAssistant
                     ? "Your assistant"
                     : `@${activeContact.username}'s assistant`}
                 </p>
+              </div>
+
+              {/* ── Mode toggle: shop / advice ── */}
+              <div className="flex items-center gap-1.5 rounded-full bg-black/10 p-1">
+                <button
+                  type="button"
+                  onClick={() => setMode("shop")}
+                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${
+                    mode === "shop"
+                      ? "bg-light-brown/80 text-cream shadow-sm"
+                      : "text-cream/50 hover:text-cream/80"
+                  }`}
+                >
+                  shop
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("advice")}
+                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${
+                    mode === "advice"
+                      ? "bg-light-brown/80 text-cream shadow-sm"
+                      : "text-cream/50 hover:text-cream/80"
+                  }`}
+                >
+                  advice
+                </button>
               </div>
             </div>
 
@@ -192,7 +222,7 @@ export default function ChatPage() {
             </div>
 
             {/* ── Input bar ── */}
-            <ChatInput onSend={handleSend} disabled={isTyping} />
+            <ChatInput onSend={handleSend} disabled={isTyping} mode={mode} isFriend={!activeContact.isOwnAssistant} />
           </>
         )}
       </div>

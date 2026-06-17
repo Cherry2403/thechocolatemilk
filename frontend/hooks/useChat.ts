@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import type { ChatMessage } from "@/lib/types/chat";
-import { getMockResponse } from "@/lib/data/chatMock";
+import { getMockResponse, type ChatMode } from "@/lib/data/chatMock";
 
 /** Simulated AI thinking delay range (ms). */
 const AI_DELAY_MIN = 800;
@@ -63,7 +63,7 @@ export function useChat() {
    * and can be wired in later.
    */
   const sendMessage = useCallback(
-    (contactId: string, content: string) => {
+    (contactId: string, content: string, mode: ChatMode = "shop") => {
       if (!content.trim()) return;
 
       /* ── 1. Add user message immediately ── */
@@ -86,7 +86,7 @@ export function useChat() {
         AI_DELAY_MIN + Math.random() * (AI_DELAY_MAX - AI_DELAY_MIN);
 
       setTimeout(() => {
-        const mock = getMockResponse(content);
+        const mock = getMockResponse(content, contactId, mode);
 
         const assistantMsg: ChatMessage = {
           id: `msg-${++idCounter.current}`,
